@@ -1,0 +1,934 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>키오스크 위젯</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 전체 리셋 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        /* 기본 설정 - 1080x1920 디스플레이에 최적화 */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+
+        /* 컨테이너 - 1080x1920 비율 유지 */
+        .container {
+            width: 100%;
+            height: 100%;
+            max-width: 1080px;
+            max-height: 1920px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border: 2px solid #000;
+            border-radius: 10px;
+        }
+
+        /* 상단 영역 (전체 높이의 70%) */
+        .top-section {
+            display: flex;
+            height: 70%;
+            margin-bottom: 15px;
+        }
+
+        /* 왼쪽 큰 패널 (상단 영역의 65%) - 포스터 카루셀 */
+        .left-panel {
+            width: 65%;
+            height: 100%;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 10px;
+            margin-right: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 카루셀 스타일 */
+        .carousel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .carousel-inner {
+            width: 100%;
+            height: 100%;
+        }
+
+        .carousel-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel-item.active {
+            opacity: 1;
+        }
+
+        .poster {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+
+        .carousel-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.3);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .carousel-control.prev {
+            left: 10px;
+        }
+
+        .carousel-control.next {
+            right: 10px;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 50%;
+        }
+
+        .indicator.active {
+            background-color: #000;
+        }
+
+        /* 오른쪽 패널 컨테이너 (상단 영역의 35%) */
+        .right-panels {
+            width: 35%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 개선된 날씨 패널 */
+        .right-top-panel {
+            height: 48%;
+            border: none;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #5b9bd5 0%, #4285F4 100%);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(66, 133, 244, 0.25);
+            color: white;
+            position: relative;
+        }
+
+        /* 웨이브 효과 배경 */
+        .wave-background {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255, 255, 255, 0.1)" d="M0,224L40,213.3C80,203,160,181,240,181.3C320,181,400,203,480,208C560,213,640,203,720,181.3C800,160,880,128,960,128C1040,128,1120,160,1200,165.3C1280,171,1360,149,1400,138.7L1440,128L1440,320L1400,320C1360,320,1280,320,1200,320C1120,320,1040,320,960,320C880,320,800,320,720,320C640,320,560,320,480,320C400,320,320,320,240,320C160,320,80,320,40,320L0,320Z"></path></svg>');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        /* 시간/날짜 컨테이너 */
+        .time-container {
+            text-align: center;
+            padding: 18px 10px 12px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-bottom: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 위젯 스타일 시계 */
+        .widget-clock {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .clock-time {
+            font-size: 3.5rem;
+            font-weight: 600;
+            color: white;
+            font-family: 'SF Pro Display', 'Roboto', sans-serif;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .clock-period {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-left: 8px;
+            align-self: flex-start;
+            margin-top: 12px;
+        }
+
+        .date-display {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        /* 날씨 콘텐츠 영역 */
+        .weather-content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 15px 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 날씨 컨테이너 스타일 */
+        .weather-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 날씨 상단 영역 */
+        .weather-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .weather-title-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .weather-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        .weather-desc {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 500;
+        }
+
+        /* 날씨 아이콘 - 중앙에 배치 */
+        .weather-icon-bg {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 8rem;
+            color: rgba(255, 255, 255, 0.15);
+            z-index: 1;
+        }
+
+        /* 날씨 하단 영역 */
+        .weather-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+        }
+
+        .weather-current {
+            display: flex;
+            align-items: center;
+        }
+
+        .weather-current-icon {
+            font-size: 3rem;
+            color: #FFD700;
+            margin-right: 15px;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+        }
+
+        .temperature {
+            font-size: 3.8rem;
+            font-weight: bold;
+            color: white;
+            line-height: 1;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .weather-feels {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: right;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
+
+        /* 추가 날씨 정보 섹션 */
+        .weather-extra-info {
+            display: flex;
+            margin-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 12px;
+        }
+
+        .weather-extra-item {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .weather-extra-icon {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .weather-extra-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .weather-extra-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 오른쪽 하단 패널 (급식 정보) */
+        .right-bottom-panel {
+            height: 48%;
+            border: 2px solid #ff6b00;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            background-color: #fff8e6;
+            overflow-y: auto;
+        }
+
+        /* 급식 정보 스타일 */
+        .meal-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ff6b00;
+            display: flex;
+            align-items: center;
+        }
+
+        .meal-icon {
+            font-size: 1.4rem;
+            margin-right: 8px;
+        }
+
+        .meal-date {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .meal-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .meal-item {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        .meal-item:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #ff6b00;
+        }
+
+        .meal-info {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* 하단 패널 (전체 높이의 28%) */
+        .bottom-panel {
+            height: 28%;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            background-color: #fff;
+        }
+
+        /* 텍스트 스타일 */
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .text {
+            font-size: 1.5rem;
+        }
+
+        .date-time {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: #0066ff;
+            margin-bottom: 15px;
+        }
+
+        .date {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+
+        /* 하단 패널 섹션 */
+        .bottom-section {
+            width: 32%;
+        }
+
+        .bottom-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .bottom-text {
+            font-size: 1.2rem;
+        }
+
+        .bottom-center {
+            text-align: center;
+        }
+
+        .bottom-right {
+            text-align: right;
+        }
+
+        /* 시계 스타일 */
+        .clock {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            background: white;
+            border: 8px solid #0066ff;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,102,0.2);
+        }
+
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background: #333;
+            transform-origin: 0% 50%;
+            transform: rotate(90deg);
+            transition: all 0.05s cubic-bezier(0.1, 2.7, 0.58, 1);
+        }
+
+        .hour-hand {
+            width: 30%;
+            height: 4px;
+            border-radius: 4px;
+            background: #0066ff;
+        }
+
+        .min-hand {
+            width: 40%;
+            height: 3px;
+            border-radius: 3px;
+            background: #333;
+        }
+
+        .second-hand {
+            width: 45%;
+            height: 2px;
+            border-radius: 2px;
+            background: #ff6b00;
+        }
+
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #0066ff;
+            border-radius: 50%;
+        }
+
+        /* 반응형 조정 */
+        @media screen and (max-width: 1080px) {
+            .container {
+                width: 100%;
+                height: 100vh;
+            }
+        }
+
+        @media screen and (max-height: 1920px) {
+            .container {
+                height: 100vh;
+            }
+        }
+
+        /* 작은 화면에 대한 스타일 조정 */
+        @media screen and (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1.5rem;
+            }
+            .text, .date-time, .menu-title, .meal-title {
+                font-size: 1.5rem;
+            }
+            .date, .bottom-title, .meal-item {
+                font-size: 1.2rem;
+            }
+            .bottom-text, .weather-desc, .meal-date {
+                font-size: 1rem;
+            }
+            .weather-icon {
+                font-size: 2.5rem;
+            }
+            .temperature {
+                font-size: 1.5rem;
+            }
+            .clock {
+                width: 100px;
+                height: 100px;
+            }
+        }
+
+        /* 아주 작은 화면에 대한 레이아웃 조정 */
+        @media screen and (max-width: 480px) {
+            .top-section {
+                flex-direction: column;
+            }
+            .left-panel, .right-panels {
+                width: 100%;
+                margin-right: 0;
+            }
+            .left-panel {
+                margin-bottom: 20px;
+                height: 60%;
+            }
+            .right-panels {
+                height: 40%;
+            }
+            .carousel-control {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-section">
+            <!-- 왼쪽 큰 패널 - A4 포스터 카루셀 -->
+            <div class="left-panel">
+                <div class="carousel">
+                    <div class="carousel-inner" id="carousel-container">
+                        <!-- 포스터 아이템들은 JavaScript로 생성됩니다 -->
+                    </div>
+                    <button class="carousel-control prev" onclick="moveCarousel(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="carousel-control next" onclick="moveCarousel(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <div class="carousel-indicators" id="carousel-indicators">
+                        <!-- 인디케이터는 JavaScript로 생성됩니다 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 오른쪽 패널 컨테이너 -->
+            <div class="right-panels">
+                <!-- 오른쪽 상단 패널 (시간 및 날씨 표시) -->
+                <div class="right-top-panel">
+                    <!-- 웨이브 배경 -->
+                    <div class="wave-background"></div>
+                    
+                    <!-- 시간/날짜 정보 -->
+                    <div class="time-container">
+                        <div class="widget-clock">
+                            <div class="clock-time" id="widget-clock-time">10:25</div>
+                            <div class="clock-period" id="widget-clock-period">AM</div>
+                        </div>
+                        <div class="date-display" id="current-date">2025년 4월 21일 월요일</div>
+                    </div>
+                    
+                    <!-- 날씨 정보 -->
+                    <div class="weather-content-area">
+                        <div class="weather-icon-bg">
+                            <i class="fas fa-sun" id="weather-icon-bg"></i>
+                        </div>
+                        
+                        <div class="weather-container">
+                            <div class="weather-top">
+                                <div class="weather-title-group">
+                                    <div class="weather-title">오늘의 날씨</div>
+                                    <div class="weather-desc" id="weather-desc">맑음</div>
+                                </div>
+                            </div>
+                            
+                            <div class="weather-bottom">
+                                <div class="weather-current">
+                                    <div class="weather-current-icon">
+                                        <i class="fas fa-sun" id="weather-icon"></i>
+                                    </div>
+                                    <div class="temperature" id="temperature">23°C</div>
+                                </div>
+                                <div class="weather-feels" id="weather-feels">체감온도: 24°C</div>
+                            </div>
+                            
+                            <!-- 추가 날씨 정보 -->
+                            <div class="weather-extra-info">
+                                <div class="weather-extra-item">
+                                    <div class="weather-extra-icon"><i class="fas fa-wind"></i></div>
+                                    <div class="weather-extra-value" id="weather-wind">3 m/s</div>
+                                    <div class="weather-extra-label">바람</div>
+                                </div>
+                                <div class="weather-extra-item">
+                                    <div class="weather-extra-icon"><i class="fas fa-tint"></i></div>
+                                    <div class="weather-extra-value" id="weather-humidity">45%</div>
+                                    <div class="weather-extra-label">습도</div>
+                                </div>
+                                <div class="weather-extra-item">
+                                    <div class="weather-extra-icon"><i class="fas fa-cloud-rain"></i></div>
+                                    <div class="weather-extra-value" id="weather-rain">0%</div>
+                                    <div class="weather-extra-label">강수확률</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 오른쪽 하단 패널 (급식 정보) -->
+                <div class="right-bottom-panel">
+                    <div class="meal-title">
+                        <i class="fas fa-utensils meal-icon"></i>
+                        오늘의 급식
+                    </div>
+                    <div class="meal-date" id="meal-date"></div>
+                    <ul class="meal-list" id="meal-list">
+                        <!-- 급식 항목은 JavaScript로 동적 생성됩니다 -->
+                    </ul>
+                    <div class="meal-info">* 식단은 사정에 따라 변경될 수 있습니다.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 하단 패널 -->
+        <div class="bottom-panel">
+            <div class="bottom-section">
+                <div class="bottom-title">공지사항</div>
+                <div class="bottom-text">최신 정보를 확인하세요</div>
+            </div>
+            <div class="bottom-section bottom-center">
+                <div class="bottom-title">키오스크 이용 안내</div>
+                <div class="bottom-text">화면을 터치하여 이용하세요</div>
+            </div>
+            <div class="bottom-section bottom-right">
+                <div class="bottom-title">문의: 000-0000</div>
+                <div class="bottom-text">운영시간: 09:00-18:00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 자바스크립트 -->
+    <script>
+        // 포스터 데이터와 날씨 데이터 선언
+        let posters = [];
+        // 날씨 데이터 확장
+        let weatherData = {
+            temperature: 23,
+            condition: 'sunny', // sunny, partly-cloudy, cloudy, rainy, snowy, etc.
+            description: '맑음',
+            feelsLike: 24,
+            humidity: 45,
+            windSpeed: 3,
+            rainChance: 0
+        };
+        let mealData = {
+            date: '',
+            items: []
+        };
+
+        // 포스터 카루셀 초기화
+        function initCarousel() {
+            const container = document.getElementById('carousel-container');
+            const indicators = document.getElementById('carousel-indicators');
+            
+            // 포스터 아이템 생성
+            posters.forEach((poster, index) => {
+                const item = document.createElement('div');
+                item.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+                item.innerHTML = `<img src="${poster.src}" alt="${poster.alt}" class="poster">`;
+                container.appendChild(item);
+                
+                // 인디케이터 생성
+                const indicator = document.createElement('div');
+                indicator.className = `indicator ${index === 0 ? 'active' : ''}`;
+                indicator.dataset.index = index;
+                indicator.addEventListener('click', () => {
+                    setActiveItem(index);
+                });
+                indicators.appendChild(indicator);
+            });
+            
+            // 자동 슬라이드 시작
+            setInterval(() => {
+                moveCarousel(1);
+            }, 5000);
+            
+            // API로부터 포스터 데이터 불러오기
+            fetchPosters();
+        }
+
+        // 현재 활성화된 슬라이드 인덱스
+        let activeIndex = 0;
+
+        // 카루셀 이동 함수
+        function moveCarousel(direction) {
+            const items = document.querySelectorAll('.carousel-item');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            // 현재 아이템 비활성화
+            items[activeIndex].classList.remove('active');
+            indicators[activeIndex].classList.remove('active');
+            
+            // 다음 인덱스 계산
+            activeIndex = (activeIndex + direction + items.length) % items.length;
+            
+            // 새 아이템 활성화
+            items[activeIndex].classList.add('active');
+            indicators[activeIndex].classList.add('active');
+        }
+
+        // 특정 인덱스 아이템 활성화
+        function setActiveItem(index) {
+            const items = document.querySelectorAll('.carousel-item');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            // 현재 아이템 비활성화
+            items[activeIndex].classList.remove('active');
+            indicators[activeIndex].classList.remove('active');
+            
+            // 새 인덱스 설정
+            activeIndex = index;
+            
+            // 새 아이템 활성화
+            items[activeIndex].classList.add('active');
+            indicators[activeIndex].classList.add('active');
+        }
+
+        // 날짜 및 시간 업데이트 함수
+        function updateDateTime() {
+            const now = new Date();
+            
+            // 날짜 포맷 (요일, 연월일)
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long' 
+            };
+            const dateStr = now.toLocaleDateString('ko-KR', options);
+            
+            // 시간 포맷 - 위젯 스타일 시계
+            const hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            // 12시간제 변환
+            const hours12 = hours % 12 || 12; // 0시는 12시로 표시
+            const period = hours < 12 ? 'AM' : 'PM';
+            
+            // HTML 요소 업데이트
+            document.getElementById('widget-clock-time').textContent = `${hours12}:${minutes}`;
+            document.getElementById('widget-clock-period').textContent = period;
+            document.getElementById('current-date').textContent = dateStr;
+            
+            // 급식 날짜 업데이트 (데이터가 없는 경우)
+            if (!mealData.date) {
+                document.getElementById('meal-date').textContent = 
+                    `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
+            }
+        }
+
+        // 날씨 정보 설정 (개선된 버전)
+        function setWeatherInfo() {
+            const iconElementBg = document.getElementById('weather-icon-bg');
+            const iconElement = document.getElementById('weather-icon');
+            const tempElement = document.getElementById('temperature');
+            const descElement = document.getElementById('weather-desc');
+            const feelsElement = document.getElementById('weather-feels');
+            const humidityElement = document.getElementById('weather-humidity');
+            const windElement = document.getElementById('weather-wind');
+            const rainElement = document.getElementById('weather-rain');
+            
+            // 날씨 아이콘 설정 - 두 곳 모두 업데이트
+            let iconClass = 'fas fa-sun'; // 기본값
+            let iconColor = '#FFD700'; // 기본 아이콘 색상
+            let bgGradient = 'linear-gradient(135deg, #5b9bd5 0%, #4285F4 100%)'; // 기본 배경 그라데이션
+            
+            switch(weatherData.condition) {
+                case 'sunny':
+                    iconClass = 'fas fa-sun';
+                    iconColor = '#FFD700'; // 금색
+                    bgGradient = 'linear-gradient(135deg, #5b9bd5 0%, #4285F4 100%)'; // 파란 하늘
+                    break;
+                case 'partly-cloudy':
+                    iconClass = 'fas fa-cloud-sun';
+                    iconColor = '#F5F5F5'; // 옅은 흰색
+                    bgGradient = 'linear-gradient(135deg, #6a9ec1 0%, #4e8aca 100%)'; // 약간 흐린 하늘
+                    break;
+                case 'cloudy':
+                    iconClass = 'fas fa-cloud';
+                    iconColor = '#E0E0E0'; // 연한 회색
+                    bgGradient = 'linear-gradient(135deg, #7c8c9c 0%, #5d6e84 100%)'; // 흐린 하늘
+                    break;
+                case 'rainy':
+                    iconClass = 'fas fa-cloud-rain';
+                    iconColor = '#A4D7F5'; // 밝은 파란색
+                    bgGradient = 'linear-gradient(135deg, #4d6a85 0%, #3a546a 100%)'; // 어두운 파란색/회색
+                    break;
+                case 'heavy-rain':
+                    iconClass = 'fas fa-cloud-showers-heavy';
+                    iconColor = '#8EC5FC';
+                    bgGradient = 'linear-gradient(135deg, #3a546a 0%, #2c4053 100%)'; // 더 어두운 파란색/회색
+                    break;
+                case 'thunderstorm':
+                    iconClass = 'fas fa-bolt';
+                    iconColor = '#FFC857';
+                    bgGradient = 'linear-gradient(135deg, #2c3e50 0%, #1a2530 100%)'; // 거의 검은색
+                    break;
+                case 'snowy':
+                    iconClass = 'fas fa-snowflake';
+                    iconColor = '#F5F5F5';
+                    bgGradient = 'linear-gradient(135deg, #94A9BF 0%, #657b91 100%)'; // 밝은 회색/파란색
+                    break;
+                case 'windy':
+                    iconClass = 'fas fa-wind';
+                    iconColor = '#CCCCCC';
+                    bgGradient = 'linear-gradient(135deg, #7d9aaa 0%, #5c7a91 100%)'; // 회색/파란색
+                    break;
+                case 'foggy':
+                    iconClass = 'fas fa-smog';
+                    iconColor = '#E0E0E0';
+                    bgGradient = 'linear-gradient(135deg, #9EA7B3 0%, #7a8593 100%)'; // 옅은 회색
+                    break;
+                default:
+                    iconClass = 'fas fa-sun';
+                    iconColor = '#FFD700';
+                    bgGradient = 'linear-gradient(135deg, #5b9bd5 0%, #4285F4 100%)';
+            }
+            
+            // 두 아이콘 모두 업데이트
+            iconElementBg.className = iconClass;
+            iconElement.className = iconClass;
+            
+            // 아이콘 색상 설정
+            iconElement.style.color = iconColor;
+            
+            // 배경 그라데이션 변경
+            document.querySelector('.right-top-panel').style.background = bgGradient;
+            
+            // 온도 및 설명 설정
+            tempElement.textContent = `${weatherData.temperature}°C`;
+            descElement.textContent = weatherData.description;
+            
+            // 체감 온도 설정
+            if (weatherData.feelsLike) {
+                feelsElement.textContent = `체감온도: ${weatherData.feelsLike}°C`;
+            } else {
+                // API에서 체감온도 정보가 없는 경우 임의로 계산
+                const feelsLike = weatherData.temperature + (Math.random() > 0.5 ? 1 : -1);
+                feelsElement.textContent = `체감온도: ${feelsLike}°C`;
+                weatherData.feelsLike = feelsLike;
+            }
+            
+            // 추가 날씨 정보 설정
+            if (humidityElement) humidityElement.textContent = `${weatherData.humidity}%`;
+            if (windElement) windElement.textContent = `${weatherData.windSpeed} m/s`;
+            if (rainElement) rainElement.textContent = `${weatherData.rainChance}%`;
