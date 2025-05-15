@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>키오스크 관리자 대시보드</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 사이드바 스타일 */
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: #fff;
+            padding-top: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .nav-item {
+            width: 100%;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: #4285F4;
+            color: white;
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .logout-link {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+        }
+        
+        /* 메인 콘텐츠 스타일 */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+        
+        .content-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: #4285F4;
+        }
+        
+        /* 포스터 목록 스타일 */
+        .poster-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .poster-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        
+        .poster-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .poster-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .poster-info {
+            padding: 12px;
+        }
+        
+        .poster-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .poster-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .delete-poster {
+            color: #dc3545;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        
+        .delete-poster:hover {
+            color: #a71d2a;
+        }
+        
+        /* 업로드 폼 스타일 */
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4285F4;
+        }
+        
+        .button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4285F4;
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .button:hover {
+            background-color: #3367d6;
+        }
+        
+        .button-danger {
+            background-color: #dc3545;
+        }
+        
+        .button-danger:hover {
+            background-color: #a71d2a;
+        }
+        
+        .button-secondary {
+            background-color: #6c757d;
+        }
+        
+        .button-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        /* 설정 폼 스타일 */
+        .settings-form {
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* 알림 스타일 */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        /* 탭 콘텐츠 스타일 */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 미리보기 섹션 */
+        .preview-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        /* 푸터 스타일 */
+        .footer {
+            margin-top: auto;
+            padding-top: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* 화면 보호기 관리 탭 스타일 */
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .status-display {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .status-label {
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        
+        .status-value {
+            font-weight: 600;
+        }
+        
+        .status-value.active {
+            color: #28a745;
+        }
+        
+        .status-value.inactive {
+            color: #dc3545;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input {
+            margin-right: 5px;
+        }
+        
+        .subsection-title {
+            font-size: 1.2rem;
+            margin: 20px 0 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .table-container {
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .button-info {
+            background-color: #17a2b8;
+        }
+        
+        .button-info:hover {
+            background-color: #138496;
+        }
+        
+        .empty-table-message {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* 새로고침 관리 탭 스타일 */
+        .description {
+            margin-bottom: 20px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .last-refresh-time {
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 사이드바 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>키오스크 관리</h2>
+                <p>관리자 대시보드</p>
+            </div>
+            
+            <nav class="nav">
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" data-tab="posters">
+                        <i class="fas fa-images"></i> 포스터 관리
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="settings">
+                        <i class="fas fa-cog"></i> 설정
+                    </a>
+                </div>
+                <!-- 화면 보호기 관리 탭 추가 -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="screensaver">
+                        <i class="fas fa-desktop"></i> 화면 보호기 관리
+                    </a>
+                </div>
+                <!-- 새로고침 관리 탭 추가 -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="refresh">
+                        <i class="fas fa-sync-alt"></i> 새로고침 관리
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="help">
+                        <i class="fas fa-question-circle"></i> 도움말
+                    </a>
+                </div>
+                <div class="nav-item logout-link">
+                    <a href="{{ url_for('admin_logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> 로그아웃
+                    </a>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- 메인 콘텐츠 -->
+        <div class="main-content">
+            <div class="header">
+                <h1>키오스크 관리자 대시보드</h1>
+                <div id="current-time"></div>
+            </div>
+            
+            <!-- 알림 영역 -->
+            <div id="alert-container"></div>
+            
+            <!-- 포스터 관리 탭 -->
+            <div id="posters-tab" class="tab-content active">
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-images"></i> 포스터 갤러리</h2>
+                    <div class="poster-gallery" id="poster-gallery">
+                        {% for poster in config.posters %}
+                        <div class="poster-card" data-id="{{ poster.id }}">
+                            <img src="{{ poster.src }}" alt="{{ poster.alt }}" class="poster-image">
+                            <div class="poster-info">
+                                <div class="poster-title">{{ poster.alt }}</div>
+                                <div class="poster-actions">
+                                    <button class="delete-poster" onclick="deletePoster({{ poster.id }})">
+                                        <i class="fas fa-trash"></i> 삭제
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-upload"></i> 새 포스터 업로드</h2>
+                    <form class="upload-form" id="poster-upload-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="posterTitle">포스터 제목</label>
+                            <input type="text" id="posterTitle" name="posterTitle" placeholder="포스터 제목 입력" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="posterImage">포스터 이미지 파일</label>
+                            <input type="file" id="posterImage" name="posterImage" accept="image/*" required>
+                        </div>
+                        <div class="preview-section">
+                            <img id="preview-image" class="preview-image" src="" alt="이미지 미리보기">
+                        </div>
+                        <button type="submit" class="button">
+                            <i class="fas fa-cloud-upload-alt"></i> 포스터 업로드
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 설정 탭 -->
+            <div id="settings-tab" class="tab-content">
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-cog"></i> 키오스크 설정</h2>
+                    <form class="settings-form" id="kiosk-settings-form">
+                        <div class="form-group">
+                            <label for="kioskTitle">키오스크 제목</label>
+                            <input type="text" id="kioskTitle" name="kioskTitle" value="{{ config.kiosk_title }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactInfo">문의 연락처</label>
+                            <input type="text" id="contactInfo" name="contactInfo" value="{{ config.contact_info }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="operationHours">운영 시간</label>
+                            <input type="text" id="operationHours" name="operationHours" value="{{ config.operation_hours }}" required>
+                        </div>
+                        <button type="submit" class="button">
+                            <i class="fas fa-save"></i> 설정 저장
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-key"></i> 관리자 비밀번호 변경</h2>
+                    <form class="settings-form" id="admin-password-form">
+                        <div class="form-group">
+                            <label for="adminPassword">새 비밀번호</label>
+                            <input type="password" id="adminPassword" name="adminPassword" placeholder="새 비밀번호 (6자 이상)" minlength="6" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">비밀번호 확인</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="비밀번호 확인" required>
+                        </div>
+                        <button type="submit" class="button">
+                            <i class="fas fa-lock"></i> 비밀번호 변경
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 도움말 탭 -->
+            <div id="help-tab" class="tab-content">
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-question-circle"></i> 키오스크 관리 도움말</h2>
+                    <div class="help-content">
+                        <h3>포스터 관리</h3>
+                        <p>키오스크에 표시될 포스터를 관리합니다. 새 포스터를 업로드하거나 기존 포스터를 삭제할 수 있습니다.</p>
+                        <ul>
+                            <li>업로드 가능한 이미지 형식: JPG, PNG, GIF</li>
+                            <li>최대 파일 크기: 16MB</li>
+                            <li>권장 이미지 비율: A4 (595 x 842 픽셀)</li>
+                        </ul>
+                        
+                        <h3>키오스크 설정</h3>
+                        <p>키오스크의 기본 정보를 설정합니다. 제목, 연락처, 운영 시간 등을 변경할 수 있습니다.</p>
+                        
+                        <h3>비밀번호 변경</h3>
+                        <p>관리자 계정의 비밀번호를 변경합니다. 보안을 위해 주기적으로 비밀번호를 변경하는 것이 좋습니다.</p>
+                        <p>비밀번호는 최소 6자 이상이어야 합니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 화면 보호기 관리 탭 추가 -->
+            <div id="screensaver-tab" class="tab-content">
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-desktop"></i> 화면 보호기 제어</h2>
+                    <div class="controls-container">
+                        <div class="control-group">
+                            <button id="activate-screensaver" class="button">
+                                <i class="fas fa-play"></i> 즉시 활성화
+                            </button>
+                            <button id="deactivate-screensaver" class="button button-secondary">
+                                <i class="fas fa-stop"></i> 즉시 비활성화
+                            </button>
+                        </div>
+                        <div class="status-display">
+                            <div class="status-label">현재 상태:</div>
+                            <div id="screensaver-status" class="status-value">비활성화</div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-calendar-alt"></i> 화면 보호기 예약 설정</h2>
+                    <form id="schedule-form" class="settings-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>요일 선택</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" name="days" value="0"> 일요일</label>
+                                    <label><input type="checkbox" name="days" value="1"> 월요일</label>
+                                    <label><input type="checkbox" name="days" value="2"> 화요일</label>
+                                    <label><input type="checkbox" name="days" value="3"> 수요일</label>
+                                    <label><input type="checkbox" name="days" value="4"> 목요일</label>
+                                    <label><input type="checkbox" name="days" value="5"> 금요일</label>
+                                    <label><input type="checkbox" name="days" value="6"> 토요일</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="schedule-time">시간</label>
+                                <input type="time" id="schedule-time" name="time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="schedule-action">동작</label>
+                                <select id="schedule-action" name="scheduleAction">
+                                    <option value="activate">화면 보호기 활성화</option>
+                                    <option value="deactivate">화면 보호기 비활성화</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="button">
+                            <i class="fas fa-plus"></i> 예약 추가
+                        </button>
+                    </form>
+            
+                    <div class="schedule-list-container">
+                        <h3 class="subsection-title">예약 목록</h3>
+                        <div class="table-container">
+                            <table class="data-table" id="schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>요일</th>
+                                        <th>시간</th>
+                                        <th>동작</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 예약 항목들이 여기에 동적으로 추가됩니다 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button id="clear-schedules" class="button button-danger">
+                            <i class="fas fa-trash"></i> 모든 예약 삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 새로고침 관리 탭 추가 -->
+            <div id="refresh-tab" class="tab-content">
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-sync-alt"></i> 원격 새로고침 제어</h2>
+                    <p class="description">키오스크 화면을 원격으로 새로고침할 수 있습니다. 이 기능은 키오스크에 표시되는 정보를 즉시 업데이트하는 데 유용합니다.</p>
+                    
+                    <div class="controls-container">
+                        <button id="trigger-refresh" class="button button-info">
+                            <i class="fas fa-sync-alt"></i> 즉시 새로고침
+                        </button>
+                        
+                        <div class="status-display" style="margin-top: 15px;">
+                            <div class="last-refresh-time" id="last-refresh-time">마지막 새로고침: 없음</div>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-calendar-alt"></i> 새로고침 예약 설정</h2>
+                    <p class="description">특정 요일과 시간에 키오스크가 자동으로 새로고침되도록 예약할 수 있습니다.</p>
+                    
+                    <form id="refresh-schedule-form" class="settings-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>요일 선택</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" name="days" value="0"> 일요일</label>
+                                    <label><input type="checkbox" name="days" value="1"> 월요일</label>
+                                    <label><input type="checkbox" name="days" value="2"> 화요일</label>
+                                    <label><input type="checkbox" name="days" value="3"> 수요일</label>
+                                    <label><input type="checkbox" name="days" value="4"> 목요일</label>
+                                    <label><input type="checkbox" name="days" value="5"> 금요일</label>
+                                    <label><input type="checkbox" name="days" value="6"> 토요일</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="refresh-time">시간</label>
+                                <input type="time" id="refresh-time" name="time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="refresh-description">설명</label>
+                                <input type="text" id="refresh-description" name="description" placeholder="예: 아침 업데이트" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="button">
+                            <i class="fas fa-plus"></i> 예약 추가
+                        </button>
+                    </form>
+            
+                    <div class="schedule-list-container">
+                        <h3 class="subsection-title">예약 목록</h3>
+                        <div class="table-container">
+                            <table class="data-table" id="refresh-schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>요일</th>
+                                        <th>시간</th>
+                                        <th>설명</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- 예약 항목들이 여기에 동적으로 추가됩니다 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button id="clear-refresh-schedules" class="button button-danger">
+                            <i class="fas fa-trash"></i> 모든 예약 삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>© 2023 키오스크 관리 시스템. 모든 권리 보유.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환 기능
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 모든 탭 비활성화
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                
+                // 클릭한 탭 활성화
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // 현재 시간 표시
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('current-time').textContent = now.toLocaleDateString('ko-KR', options);
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // 알림 메시지 표시 함수
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'danger') icon = 'exclamation-circle';
+            
+            alert.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+            alertContainer.appendChild(alert);
+            
+            // 3초 후 자동으로 사라짐
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s';
+                setTimeout(() => {
+                    alertContainer.removeChild(alert);
+                }, 500);
+            }, 3000);
+        }
+        
+        // 포스터 업로드 미리보기
+        document.getElementById('posterImage').addEventListener('change', function(e) {
+            const preview = document.getElementById('preview-image');
+            const file = e.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        });
+        
+        // 포스터 업로드 처리
+        document.getElementById('poster-upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/admin/posters', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 포스터 갤러리에 새 포스터 추가
+                    const gallery = document.getElementById('poster-gallery');
+                    const newPoster = document.createElement('div');
+                    newPoster.className = 'poster-card';
+                    newPoster.dataset.id = data.poster.id;
+                    
+                    newPoster.innerHTML = `
+                        <img src="${data.poster.src}" alt="${data.poster.alt}" class="poster-image">
+                        <div class="poster-info">
+                            <div class="poster-title">${data.poster.alt}</div>
+                            <div class="poster-actions">
+                                <button class="delete-poster" onclick="deletePoster(${data.poster.id})">
+                                    <i class="fas fa-trash"></i> 삭제
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    gallery.appendChild(newPoster);
+                    
+                    // 폼 초기화
+                    this.reset();
+                    document.getElementById('preview-image').style.display = 'none';
+                    
+                    showAlert('포스터가 성공적으로 업로드되었습니다.', 'success');
+                } else {
+                    showAlert(data.error || '포스터 업로드에 실패했습니다.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('서버 오류가 발생했습니다.', 'danger');
+            });
+        });
+        
+        // 포스터 삭제 함수
+        function deletePoster(posterId) {
+            if (confirm('정말 이 포스터를 삭제하시겠습니까?')) {
+                fetch(`/admin/posters/${posterId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 포스터 카드 삭제
+                        const posterCard = document.querySelector(`.poster-card[data-id="${posterId}"]`);
+                        if (posterCard) {
+                            posterCard.remove();
+                        }
+                        
+                        showAlert('포스터가 성공적으로 삭제되었습니다.', 'success');
+                    } else {
+                        showAlert(data.error || '포스터 삭제에 실패했습니다.', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('서버 오류가 발생했습니다.', 'danger');
+                });
+            }
+        }
+        
+        // 키오스크 설정 저장
+        document.getElementById('kiosk-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/admin/settings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('설정이 성공적으로 저장되었습니다.', 'success');
+                } else {
+                    showAlert(data.error || '설정 저장에 실패했습니다.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('서버 오류가 발생했습니다.', 'danger');
+            });
+        });
+        
+        // 비밀번호 변경
+        document.getElementById('admin-password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('adminPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                showAlert('비밀번호가 일치하지 않습니다.', 'danger');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            
+            fetch('/admin/settings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('비밀번호가 성공적으로 변경되었습니다.', 'success');
+                    this.reset();
+                } else {
+                    showAlert(data.error || '비밀번호 변경에 실패했습니다.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('서버 오류가 발생했습니다.', 'danger');
+            });
+        });
+
+        // 화면 보호기 관리 기능
+        document.addEventListener('DOMContentLoaded', function() {
+            // 화면 보호기 상태 가져오기
+            function fetchScreensaverStatus() {
+                fetch('/api/screensaver/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateScreensaverStatus(data.active);
+                        updateScheduleTable(data.schedules);
+                    })
+                    .catch(error => {
+                        console.error('화면 보호기 상태를 가져오는 데 실패했습니다:', error);
+                        showAlert('화면 보호기 상태를 가져오는 데 실패했습니다.', 'danger');
+                    });
+            }
+            
+            // 화면 보호기 상태 업데이트
+            function updateScreensaverStatus(isActive) {
+                const statusElement = document.getElementById('screensaver-status');
+                statusElement.textContent = isActive ? '활성화' : '비활성화';
+                statusElement.className = 'status-value ' + (isActive ? 'active' : 'inactive');
+            }
+            
+            // 화면 보호기 활성화 버튼
+            document.getElementById('activate-screensaver').addEventListener('click', function() {
+                toggleScreensaver(true);
+            });
+            
+            // 화면 보호기 비활성화 버튼
+            document.getElementById('deactivate-screensaver').addEventListener('click', function() {
+                toggleScreensaver(false);
+            });
+            
+            // 화면 보호기 상태 토글
+            function toggleScreensaver(active) {
+                fetch('/api/screensaver/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ active: active })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateScreensaverStatus(data.status.active);
+                        showAlert(`화면 보호기가 ${active ? '활성화' : '비활성화'}되었습니다.`, 'success');
+                    } else {
+                        showAlert(data.error || '요청 처리에 실패했습니다.', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('요청 처리 중 오류가 발생했습니다:', error);
+                    showAlert('요청 처리 중 오류가 발생했습니다.', 'danger');
+                });
+            }
+            
+            // 예약 추가 폼 제출 처리
+            document.getElementById('schedule-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const days = Array.from(formData.getAll('days')).map(value => parseInt(value));
+                const time = formData.get('time');
+                const scheduleAction = formData.get('scheduleAction');
+                
+                if (days.length === 0) {
+                    showAlert('최소 하나의 요일을 선택해주세요.', 'danger');
+                    return;
+                }
+                
+                if (!time) {
+                    showAlert('시간을 선택해주세요.', 'danger');
+                    return;
+                }
+                
+                const scheduleData = {
+                    action: 'add',
+                    days: days,
+                    time: time,
+                    scheduleAction: scheduleAction
+                };
+                
+                fetch('/api/screensaver/schedules', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(scheduleData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchScreensaverStatus(); // 테이블 새로고침
+                        this.reset(); // 폼 초기화
+                        showAlert('예약이 추가되었습니다.', 'success');
+                    } else {
+                        showAlert(data.error || '예약 추가에 실패했습니다.', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('예약 추가 중 오류가 발생했습니다:', error);
+                    showAlert('예약 추가 중 오류가 발생했습니다.', 'danger');
+                });
+            });
+            
+            // 예약 삭제 함수
+            function deleteSchedule(scheduleId) {
+                if (confirm('정말 이 예약을 삭제하시겠습니까?')) {
+                    fetch('/api/screensaver/schedules', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'remove',
+                            id: scheduleId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchScreensaverStatus(); // 테이블 새로고침
+                            showAlert('예약이 삭제되었습니다.', 'success');
+                        } else {
+                            showAlert(data.error || '예약 삭제에 실패했습니다.', 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('예약 삭제 중 오류가 발생했습니다:', error);
+                        showAlert('예약 삭제 중 오류가 발생했습니다.', 'danger');
+                    });
+                }
+            }
+            
+            // 모든 예약 삭제 버튼
+            document.getElementById('clear-schedules').addEventListener('click', function() {
+                if (confirm('정말 모든 예약을 삭제하시겠습니까?')) {
+                    fetch('/api/screensaver/schedules', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'clear'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchScreensaverStatus(); // 테이블 새로고침
+                            showAlert('모든 예약이 삭제되었습니다.', 'success');
+                        } else {
+                            showAlert(data.error || '예약 삭제에 실패했습니다.', 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('예약 삭제 중 오류가 발생했습니다:', error);
+                        showAlert('예약 삭제 중 오류가 발생했습니다.', 'danger');
+                    });
+                }
+            });
+            
+            // 예약 테이블 업데이트
+            function updateScheduleTable(schedules) {
+                const tableBody = document.querySelector('#schedule-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (schedules.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `<td colspan="4" class="empty-table-message">등록된 예약이 없습니다</td>`;
+                    tableBody.appendChild(emptyRow);
+                    return;
+                }
+                
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                
+                schedules.forEach(schedule => {
+                    const row = document.createElement('tr');
+                    
+                    // 요일 표시
+                    const daysText = schedule.days.map(day => dayNames[day]).join(', ');
+                    
+                    // 시간 포맷팅
+                    const [hour, minute] = schedule.time.split(':');
+                    const timeText = `${hour}시 ${minute}분`;
+                    
+                    // 동작 표시
+                    const actionText = schedule.action === 'activate' ? '화면 보호기 활성화' : '화면 보호기 비활성화';
+                    
+                    row.innerHTML = `
+                        <td>${daysText}</td>
+                        <td>${timeText}</td>
+                        <td>${actionText}</td>
+                        <td>
+                            <button class="delete-schedule button button-danger" data-id="${schedule.id}">
+                                <i class="fas fa-trash"></i> 삭제
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                // 이벤트 리스너 추가
+                document.querySelectorAll('.delete-schedule').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const scheduleId = parseInt(this.getAttribute('data-id'));
+                        deleteSchedule(scheduleId);
+                    });
+                });
+            }
+            
+            // 탭이 변경될 때 화면 보호기 상태 갱신
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (this.getAttribute('data-tab') === 'screensaver') {
+                        fetchScreensaverStatus();
+                    }
+                });
+            });
+        });
+
+        // 새로고침 관리 기능
+        document.addEventListener('DOMContentLoaded', function() {
+            // 새로고침 상태 및 예약 가져오기
+            function fetchRefreshStatus() {
+                fetch('/api/refresh/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateLastRefreshTime(data.lastRefreshTime);
+                        updateRefreshScheduleTable(data.schedules);
+                    })
+                    .catch(error => {
+                        console.error('새로고침 상태를 가져오는 데 실패했습니다:', error);
+                        showAlert('새로고침 상태를 가져오는 데 실패했습니다.', 'danger');
+                    });
+            }
+            
+            // 마지막 새로고침 시간 업데이트
+            function updateLastRefreshTime(timestamp) {
+                const element = document.getElementById('last-refresh-time');
+                if (timestamp) {
+                    const date = new Date(timestamp);
+                    const formattedDate = date.toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    element.textContent = `마지막 새로고침: ${formattedDate}`;
+                } else {
+                    element.textContent = '마지막 새로고침: 없음';
+                }
+            }
+            
+            // 즉시 새로고침 버튼
+            document.getElementById('trigger-refresh').addEventListener('click', function() {
+                triggerRefresh();
+            });
+            
+            // 새로고침 트리거
+            function triggerRefresh() {
+                fetch('/api/refresh/trigger', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('키오스크 새로고침 요청이 전송되었습니다.', 'success');
+                        setTimeout(fetchRefreshStatus, 1000); // 1초 후 상태 갱신
+                    } else {
+                        showAlert(data.error || '요청 처리에 실패했습니다.', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('요청 처리 중 오류가 발생했습니다:', error);
+                    showAlert('요청 처리 중 오류가 발생했습니다.', 'danger');
+                });
+            }
+            
+            // 새로고침 예약 추가 폼 제출 처리
+            document.getElementById('refresh-schedule-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const days = Array.from(formData.getAll('days')).map(value => parseInt(value));
+                const time = formData.get('time');
+                const description = formData.get('description');
+                
+                if (days.length === 0) {
+                    showAlert('최소 하나의 요일을 선택해주세요.', 'danger');
+                    return;
+                }
+                
+                if (!time) {
+                    showAlert('시간을 선택해주세요.', 'danger');
+                    return;
+                }
+                
+                if (!description) {
+                    showAlert('설명을 입력해주세요.', 'danger');
+                    return;
+                }
+                
+                const scheduleData = {
+                    action: 'add',
+                    days: days,
+                    time: time,
+                    description: description
+                };
+                
+                fetch('/api/refresh/schedules', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(scheduleData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchRefreshStatus(); // 테이블 새로고침
+                        this.reset(); // 폼 초기화
+                        showAlert('새로고침 예약이 추가되었습니다.', 'success');
+                    } else {
+                        showAlert(data.error || '예약 추가에 실패했습니다.', 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('예약 추가 중 오류가 발생했습니다:', error);
+                    showAlert('예약 추가 중 오류가 발생했습니다.', 'danger');
+                });
+            });
+            
+            // 새로고침 예약 삭제 함수
+            function deleteRefreshSchedule(scheduleId) {
+                if (confirm('정말 이 예약을 삭제하시겠습니까?')) {
+                    fetch('/api/refresh/schedules', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'remove',
+                            id: scheduleId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchRefreshStatus(); // 테이블 새로고침
+                            showAlert('예약이 삭제되었습니다.', 'success');
+                        } else {
+                            showAlert(data.error || '예약 삭제에 실패했습니다.', 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('예약 삭제 중 오류가 발생했습니다:', error);
+                        showAlert('예약 삭제 중 오류가 발생했습니다.', 'danger');
+                    });
+                }
+            }
+            
+            // 모든 새로고침 예약 삭제 버튼
+            document.getElementById('clear-refresh-schedules').addEventListener('click', function() {
+                if (confirm('정말 모든 새로고침 예약을 삭제하시겠습니까?')) {
+                    fetch('/api/refresh/schedules', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'clear'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchRefreshStatus(); // 테이블 새로고침
+                            showAlert('모든 예약이 삭제되었습니다.', 'success');
+                        } else {
+                            showAlert(data.error || '예약 삭제에 실패했습니다.', 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('예약 삭제 중 오류가 발생했습니다:', error);
+                        showAlert('예약 삭제 중 오류가 발생했습니다.', 'danger');
+                    });
+                }
+            });
+            
+            // 새로고침 예약 테이블 업데이트
+            function updateRefreshScheduleTable(schedules) {
+                const tableBody = document.querySelector('#refresh-schedule-table tbody');
+                tableBody.innerHTML = '';
+                
+                if (!schedules || schedules.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `<td colspan="4" class="empty-table-message">등록된 예약이 없습니다</td>`;
+                    tableBody.appendChild(emptyRow);
+                    return;
+                }
+                
+                const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                
+                schedules.forEach(schedule => {
+                    const row = document.createElement('tr');
+                    
+                    // 요일 표시
+                    const daysText = schedule.days.map(day => dayNames[day]).join(', ');
+                    
+                    // 시간 포맷팅
+                    const [hour, minute] = schedule.time.split(':');
+                    const timeText = `${hour}시 ${minute}분`;
+                    
+                    row.innerHTML = `
+                        <td>${daysText}</td>
+                        <td>${timeText}</td>
+                        <td>${schedule.description || '자동 새로고침'}</td>
+                        <td>
+                            <button class="delete-refresh-schedule button button-danger" data-id="${schedule.id}">
+                                <i class="fas fa-trash"></i> 삭제
+                            </button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                // 이벤트 리스너 추가
+                document.querySelectorAll('.delete-refresh-schedule').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const scheduleId = parseInt(this.getAttribute('data-id'));
+                        deleteRefreshSchedule(scheduleId);
+                    });
+                });
+            }
+            
+            // 탭이 변경될 때 새로고침 상태 갱신
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (this.getAttribute('data-tab') === 'refresh') {
+                        fetchRefreshStatus();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

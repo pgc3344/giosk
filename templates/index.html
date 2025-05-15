@@ -599,6 +599,281 @@
                 font-size: 14px;
             }
         }
+
+        /* 기능 버튼 위젯 스타일 */
+        .feature-widget {
+            margin-top: 10px;
+            border-top: 1px solid rgba(255, 107, 0, 0.3);
+            padding-top: 10px;
+        }
+
+        .feature-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #ff6b00;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-title-icon {
+            margin-right: 5px;
+        }
+
+        .feature-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .feature-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            border: 1px solid #ffdfbd;
+            border-radius: 8px;
+            padding: 8px 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .feature-button:hover {
+            background-color: #fff2e2;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(255, 107, 0, 0.1);
+        }
+
+        .feature-button.active {
+            background-color: #ffeedb;
+            border-color: #ff6b00;
+        }
+
+        .feature-button-icon {
+            font-size: 1.2rem;
+            color: #ff6b00;
+            margin-bottom: 5px;
+        }
+
+        .feature-button-text {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* 다크 모드 스타일 */
+        body.dark-mode {
+            background-color: #121212;
+        }
+
+        .dark-mode .container {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+
+        .dark-mode .left-panel {
+            border-color: #333;
+            background-color: #252525;
+        }
+
+        .dark-mode .right-bottom-panel {
+            background-color: #252525;
+            border-color: #ff884d;
+        }
+
+        .dark-mode .bottom-panel {
+            background-color: #252525;
+            border-color: #333;
+        }
+
+        .dark-mode .meal-title,
+        .dark-mode .meal-item:before {
+            color: #ff884d;
+        }
+
+        .dark-mode .meal-date,
+        .dark-mode .meal-item,
+        .dark-mode .bottom-title {
+            color: #e0e0e0;
+        }
+
+        .dark-mode .meal-info,
+        .dark-mode .bottom-text {
+            color: #aaa;
+        }
+
+        .dark-mode .feature-button {
+            background-color: #333;
+            border-color: #444;
+        }
+
+        .dark-mode .feature-button:hover {
+            background-color: #444;
+        }
+
+        .dark-mode .feature-button.active {
+            background-color: #505050;
+            border-color: #ff884d;
+        }
+
+        .dark-mode .feature-button-text {
+            color: #ddd;
+        }
+
+        .dark-mode .feature-title {
+            color: #ff884d;
+        }
+
+        .dark-mode .feature-widget {
+            border-top-color: rgba(255, 136, 77, 0.3);
+        }
+
+        /* 글자 크기 조정 버튼 */
+        .font-size-normal {
+            font-size: 1rem;
+        }
+
+        .font-size-large .meal-item,
+        .font-size-large .feature-button-text {
+            font-size: 1.1rem;
+        }
+
+        .font-size-large .meal-title,
+        .font-size-large .feature-title {
+            font-size: 1.7rem;
+        }
+
+        .font-size-large .feature-button-icon {
+            font-size: 1.4rem;
+        }
+
+        /* QR 코드 모달 */
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qr-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+
+        .dark-mode .qr-modal-content {
+            background-color: #252525;
+            color: #e0e0e0;
+        }
+
+        .qr-code-image {
+            width: 200px;
+            height: 200px;
+            margin: 15px auto;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .qr-modal-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .qr-modal-close {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .dark-mode .qr-modal-close {
+            background-color: #ff884d;
+        }
+
+        /* 음성 안내 버튼 활성화 스타일 */
+        .feature-button[data-feature="audio"].active .feature-button-icon {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* 화면 보호기 */
+        .screensaver {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 2000;
+            color: white;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .screensaver-time {
+            font-size: 5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-family: 'SF Pro Display', 'Roboto', sans-serif;
+        }
+
+        .screensaver-date {
+            font-size: 2rem;
+        }
+
+        .screensaver-info {
+            position: absolute;
+            bottom: 50px;
+            font-size: 1.5rem;
+            opacity: 0.7;
+        }
+
+        /* 1920*1080 최적화 */
+        @media (max-width: 1920px) and (max-height: 1080px) {
+            .container {
+                max-width: 1920px;
+                max-height: 1080px;
+                padding: 15px;
+            }
+
+            .top-section {
+                height: 65%;
+            }
+
+            .feature-buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .bottom-panel {
+                height: 32%;
+            }
+
+            .right-top-panel, .right-bottom-panel {
+                height: 47.5%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -695,6 +970,51 @@
                         <!-- 급식 항목은 JavaScript로 동적 생성됩니다 -->
                     </ul>
                     <div class="meal-info">* 식단은 사정에 따라 변경될 수 있습니다.</div>
+                    
+                    <!-- 추가 기능 버튼 위젯 -->
+                    <div class="feature-widget">
+                        <div class="feature-title">
+                            <i class="fas fa-sliders-h feature-title-icon"></i> 추가 기능
+                        </div>
+                        <div class="feature-buttons">
+                            <div class="feature-button" data-feature="dark-mode">
+                                <div class="feature-button-icon">
+                                    <i class="fas fa-moon"></i>
+                                </div>
+                                <div class="feature-button-text">다크 모드</div>
+                            </div>
+                            <div class="feature-button" data-feature="font-size">
+                                <div class="feature-button-icon">
+                                    <i class="fas fa-text-height"></i>
+                                </div>
+                                <div class="feature-button-text">추가 기능1</div>
+                            </div>
+                            <div class="feature-button" data-feature="qr-code">
+                                <div class="feature-button-icon">
+                                    <i class="fas fa-qrcode"></i>
+                                </div>
+                                <div class="feature-button-text">학생 허브</div>
+                            </div>
+                            <div class="feature-button" data-feature="audio">
+                                <div class="feature-button-icon">
+                                    <i class="fas fa-volume-up"></i>
+                                </div>
+                                <div class="feature-button-text">추가 기능2</div>
+                            </div>
+                            <div class="feature-button" data-feature="refresh">
+                                <div class="feature-button-icon">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="feature-button-text">새로고침</div>
+                            </div>
+                            <div class="feature-button" data-feature="screensaver">
+                                <div class="feature-button-icon">
+                                    <i class="fas fa-desktop"></i>
+                                </div>
+                                <div class="feature-button-text">화면 보호</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -714,6 +1034,24 @@
                 <div class="bottom-text">운영시간: 09:00-18:00</div>
             </div>
         </div>
+    </div>
+    
+    <!-- QR 코드 모달 -->
+    <div class="qr-modal" id="qr-modal">
+        <div class="qr-modal-content">
+            <div class="qr-modal-title">공식 사이트 방문</div>
+            <div class="qr-code-image">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://example.com" alt="QR 코드" width="200" height="200">
+            </div>
+            <button class="qr-modal-close" onclick="closeQRModal()">닫기</button>
+        </div>
+    </div>
+    
+    <!-- 화면 보호기 -->
+    <div class="screensaver" id="screensaver">
+        <div class="screensaver-time" id="screensaver-time">00:00</div>
+        <div class="screensaver-date" id="screensaver-date">0000년 00월 00일 0요일</div>
+        <div class="screensaver-info">화면을 터치하면 키오스크가 활성화됩니다</div>
     </div>
 
     <!-- 자바스크립트 -->
@@ -761,9 +1099,6 @@
             setInterval(() => {
                 moveCarousel(1);
             }, 5000);
-            
-            // API로부터 포스터 데이터 불러오기
-            fetchPosters();
         }
 
         // 현재 활성화된 슬라이드 인덱스
@@ -773,6 +1108,8 @@
         function moveCarousel(direction) {
             const items = document.querySelectorAll('.carousel-item');
             const indicators = document.querySelectorAll('.indicator');
+            
+            if (items.length === 0) return;  // 포스터가 없으면 처리하지 않음
             
             // 현재 아이템 비활성화
             items[activeIndex].classList.remove('active');
@@ -791,6 +1128,8 @@
             const items = document.querySelectorAll('.carousel-item');
             const indicators = document.querySelectorAll('.indicator');
             
+            if (items.length === 0) return;  // 포스터가 없으면 처리하지 않음
+            
             // 현재 아이템 비활성화
             items[activeIndex].classList.remove('active');
             indicators[activeIndex].classList.remove('active');
@@ -801,6 +1140,88 @@
             // 새 아이템 활성화
             items[activeIndex].classList.add('active');
             indicators[activeIndex].classList.add('active');
+        }
+
+        // API에서 포스터 데이터 가져오기
+        function fetchPosters() {
+            fetch('/api/posters')
+                .then(response => response.json())
+                .then(data => {
+                    posters = data;
+                    const container = document.getElementById('carousel-container');
+                    const indicators = document.getElementById('carousel-indicators');
+                    
+                    // 기존 포스터 제거
+                    container.innerHTML = '';
+                    indicators.innerHTML = '';
+                    
+                    // 새 포스터 추가
+                    initCarousel();
+                })
+                .catch(error => {
+                    console.error('포스터 데이터를 가져오는 데 실패했습니다:', error);
+                });
+        }
+
+        // 날씨 정보 가져오기
+        function fetchWeather() {
+            fetch('/api/weather')
+                .then(response => response.json())
+                .then(data => {
+                    weatherData = {
+                        ...weatherData,
+                        ...data,
+                        // 누락된 값이 있으면 기본값 설정
+                        humidity: data.humidity || 45,
+                        windSpeed: data.windSpeed || 3,
+                        rainChance: data.rainChance || 0
+                    };
+                    setWeatherInfo();
+                })
+                .catch(error => {
+                    console.error('날씨 데이터를 가져오는 데 실패했습니다:', error);
+                    // 오류 발생 시 기본 날씨 정보 표시
+                    setWeatherInfo();
+                });
+        }
+
+        // 급식 정보 가져오기
+        function fetchMeal() {
+            fetch('/api/meal')
+                .then(response => response.json())
+                .then(data => {
+                    mealData = data;
+                    updateMealInfo();
+                })
+                .catch(error => {
+                    console.error('급식 데이터를 가져오는 데 실패했습니다:', error);
+                });
+        }
+
+        // 급식 정보 업데이트
+        function updateMealInfo() {
+            const dateElement = document.getElementById('meal-date');
+            const listElement = document.getElementById('meal-list');
+            
+            if (mealData.date) {
+                dateElement.textContent = mealData.date;
+            }
+            
+            // 급식 목록 생성
+            listElement.innerHTML = '';
+            if (mealData.items && mealData.items.length > 0) {
+                mealData.items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'meal-item';
+                    li.textContent = item;
+                    listElement.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.className = 'meal-item';
+                li.textContent = '오늘은 급식이 없습니다.';
+                listElement.appendChild(li);
+            }
         }
 
         // 날짜 및 시간 업데이트 함수
@@ -932,3 +1353,456 @@
             if (humidityElement) humidityElement.textContent = `${weatherData.humidity}%`;
             if (windElement) windElement.textContent = `${weatherData.windSpeed} m/s`;
             if (rainElement) rainElement.textContent = `${weatherData.rainChance}%`;
+        }
+        
+        // 관리자 페이지 숨겨진 접근 기능
+        let adminKeySequence = [];
+        const ADMIN_KEYS = ['a', 'd', 'm', 'i', 'n'];
+        
+        document.addEventListener('keydown', function(e) {
+            // 키 시퀀스에 추가
+            adminKeySequence.push(e.key.toLowerCase());
+            
+            // 시퀀스가 너무 길면 앞부분 삭제
+            if (adminKeySequence.length > ADMIN_KEYS.length) {
+                adminKeySequence.shift();
+            }
+            
+            // 시퀀스가 일치하면 관리자 페이지로 이동
+            if (adminKeySequence.join('') === ADMIN_KEYS.join('')) {
+                window.location.href = '/admin';
+            }
+        });
+        
+        // 초기화 및 주기적 업데이트
+        document.addEventListener('DOMContentLoaded', function() {
+            // 데이터 초기 로드
+            fetchPosters();
+            fetchWeather();
+            fetchMeal();
+            updateDateTime();
+            
+            // 주기적 업데이트 설정
+            setInterval(updateDateTime, 60000); // 1분마다 시간 업데이트
+            setInterval(fetchWeather, 600000); // 10분마다 날씨 업데이트
+            setInterval(fetchMeal, 3600000); // 1시간마다 급식 업데이트
+            setInterval(fetchPosters, 1800000); // 30분마다 포스터 업데이트
+        });
+
+        // 기능 버튼 관련 변수
+        let isDarkMode = false;
+        let isLargeFont = false;
+        let isAudioEnabled = false;
+        let screensaverTimeout;
+        let inactivityTimeout = 300000; // 5분 = 300000ms
+
+        // 기능 버튼 초기화
+        function initFeatureButtons() {
+            const buttons = document.querySelectorAll('.feature-button');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const feature = this.getAttribute('data-feature');
+                    
+                    switch(feature) {
+                        case 'dark-mode':
+                            toggleDarkMode();
+                            break;
+                        case 'font-size':
+                            toggleFontSize();
+                            break;
+                        case 'qr-code':
+                            showQRCode();
+                            break;
+                        case 'audio':
+                            toggleAudioGuide();
+                            break;
+                        case 'refresh':
+                            refreshKiosk();
+                            break;
+                        case 'screensaver':
+                            activateScreensaver();
+                            break;
+                    }
+                });
+            });
+            
+            // 로컬 스토리지에서 설정 불러오기
+            loadUserPreferences();
+            
+            // 비활성 타이머 시작
+            resetInactivityTimer();
+            
+            // 이벤트 리스너 추가
+            document.addEventListener('mousemove', resetInactivityTimer);
+            document.addEventListener('click', resetInactivityTimer);
+            document.addEventListener('keypress', resetInactivityTimer);
+            
+            // 화면 보호기 클릭 이벤트
+            document.getElementById('screensaver').addEventListener('click', deactivateScreensaver);
+        }
+
+        // 다크 모드 토글
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            
+            // 버튼 활성화 상태 업데이트
+            updateButtonState('dark-mode', isDarkMode);
+            
+            // 설정 저장
+            saveUserPreferences();
+            
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak(isDarkMode ? "다크 모드가 활성화되었습니다." : "라이트 모드가 활성화되었습니다.");
+            }
+        }
+
+        // 글자 크기 토글
+        function toggleFontSize() {
+            isLargeFont = !isLargeFont;
+            document.body.classList.toggle('font-size-large', isLargeFont);
+            
+            // 버튼 활성화 상태 업데이트
+            updateButtonState('font-size', isLargeFont);
+            
+            // 설정 저장
+            saveUserPreferences();
+            
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak(isLargeFont ? "글자 크기가 확대되었습니다." : "글자 크기가 기본으로 돌아갔습니다.");
+            }
+        }
+
+        // QR 코드 표시
+        function showQRCode() {
+            document.getElementById('qr-modal').style.display = 'flex';
+            
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak("QR 코드가 표시되었습니다. 스마트폰으로 스캔하여 공식 사이트를 방문하세요.");
+            }
+        }
+
+        // QR 코드 모달 닫기
+        function closeQRModal() {
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+
+        // 음성 안내 토글
+        function toggleAudioGuide() {
+            isAudioEnabled = !isAudioEnabled;
+            
+            // 버튼 활성화 상태 업데이트
+            updateButtonState('audio', isAudioEnabled);
+            
+            // 설정 저장
+            saveUserPreferences();
+            
+            // 음성 안내 테스트
+            if (isAudioEnabled) {
+                speak("음성 안내가 활성화되었습니다.");
+            }
+        }
+
+        // 음성 안내 함수
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ko-KR';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 키오스크 새로고침 함수 수정 - F5와 같은 효과 구현
+        function refreshKiosk() {
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak("페이지를 새로고침합니다.");
+            }
+            
+            // 페이지 새로고침
+            location.reload();
+        }
+        
+        // 원격 새로고침 확인 기능 추가
+        let refreshCheckIntervalId = null;
+        
+        // 원격 새로고침 체크 인터벌 설정
+        function setupRefreshCheck() {
+            // 기존 인터벌 제거
+            if (refreshCheckIntervalId) {
+                clearInterval(refreshCheckIntervalId);
+            }
+            
+            // 10초마다 새로고침 명령 체크
+            refreshCheckIntervalId = setInterval(checkRefreshCommand, 10000);
+            
+            // 초기 체크
+            checkRefreshCommand();
+        }
+        
+        // 원격 새로고침 명령 체크
+        function checkRefreshCommand() {
+            fetch('/api/refresh/status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.needsRefresh) {
+                        console.log("원격 새로고침 명령 수신");
+                        
+                        // 새로고침 실행
+                        refreshKiosk();
+                    }
+                })
+                .catch(error => {
+                    console.error('새로고침 상태를 가져오는 데 실패했습니다:', error);
+                });
+        }
+
+        // 키오스크 새로고침
+        function refreshKiosk() {
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak("키오스크 정보를 새로고침합니다.");
+            }
+            
+            // 데이터 다시 불러오기
+            fetchPosters();
+            fetchWeather();
+            fetchMeal();
+            updateDateTime();
+            
+            // 새로고침 버튼 애니메이션
+            const refreshButton = document.querySelector('.feature-button[data-feature="refresh"] .feature-button-icon i');
+            refreshButton.classList.add('fa-spin');
+            
+            setTimeout(() => {
+                refreshButton.classList.remove('fa-spin');
+            }, 1000);
+        }
+
+        // 화면 보호기 활성화
+        function activateScreensaver() {
+            const screensaver = document.getElementById('screensaver');
+            updateScreensaverTime();
+            screensaver.style.display = 'flex';
+            
+            // 화면 보호기 시간 업데이트 인터벌 설정
+            setInterval(updateScreensaverTime, 1000);
+            
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak("화면 보호기가 활성화되었습니다. 화면을 터치하면 다시 시작됩니다.");
+            }
+        }
+
+        // 화면 보호기 비활성화
+        function deactivateScreensaver() {
+            document.getElementById('screensaver').style.display = 'none';
+            resetInactivityTimer();
+        }
+
+        // 화면 보호기 시간 업데이트
+        function updateScreensaverTime() {
+            const now = new Date();
+            const timeElement = document.getElementById('screensaver-time');
+            const dateElement = document.getElementById('screensaver-date');
+            
+            // 시간 포맷 (시:분)
+            const hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeElement.textContent = `${hours}:${minutes}`;
+            
+            // 날짜 포맷
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            };
+            const dateStr = now.toLocaleDateString('ko-KR', options);
+            dateElement.textContent = dateStr;
+        }
+
+        // 비활성 타이머 재설정
+        function resetInactivityTimer() {
+            clearTimeout(screensaverTimeout);
+            screensaverTimeout = setTimeout(() => {
+                activateScreensaver();
+            }, inactivityTimeout);
+        }
+
+        // 버튼 활성화 상태 업데이트
+        function updateButtonState(feature, isActive) {
+            const button = document.querySelector(`.feature-button[data-feature="${feature}"]`);
+            if (isActive) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        }
+
+        // 사용자 설정 저장
+        function saveUserPreferences() {
+            const preferences = {
+                darkMode: isDarkMode,
+                largeFont: isLargeFont,
+                audioEnabled: isAudioEnabled
+            };
+            localStorage.setItem('kioskPreferences', JSON.stringify(preferences));
+        }
+
+        // 사용자 설정 불러오기
+        function loadUserPreferences() {
+            const savedPreferences = localStorage.getItem('kioskPreferences');
+            if (savedPreferences) {
+                const preferences = JSON.parse(savedPreferences);
+                
+                // 다크 모드 설정
+                if (preferences.darkMode) {
+                    isDarkMode = true;
+                    document.body.classList.add('dark-mode');
+                    updateButtonState('dark-mode', true);
+                }
+                
+                // 글자 크기 설정
+                if (preferences.largeFont) {
+                    isLargeFont = true;
+                    document.body.classList.add('font-size-large');
+                    updateButtonState('font-size', true);
+                }
+                
+                // 음성 안내 설정
+                if (preferences.audioEnabled) {
+                    isAudioEnabled = true;
+                    updateButtonState('audio', true);
+                }
+            }
+        }
+
+        // 초기화 및 주기적 업데이트
+        document.addEventListener('DOMContentLoaded', function() {
+            // 기존 초기화 코드
+            fetchPosters();
+            fetchWeather();
+            fetchMeal();
+            updateDateTime();
+            
+            // 추가 기능 버튼 초기화
+            initFeatureButtons();
+            
+            // 화면 보호기 예약 체크 설정
+            setupScreensaverScheduleCheck();
+            
+            // 원격 새로고침 체크 설정 추가
+            setupRefreshCheck();
+            
+            // 주기적 업데이트 설정
+            setInterval(updateDateTime, 60000); // 1분마다 시간 업데이트
+            setInterval(fetchWeather, 600000); // 10분마다 날씨 업데이트
+            setInterval(fetchMeal, 3600000); // 1시간마다 급식 업데이트
+            setInterval(fetchPosters, 1800000); // 30분마다 포스터 업데이트
+        });
+
+        // 화면 보호기 및 원격 관리 기능
+        let screensaverIntervalId = null;
+        let screensaverCheckIntervalId = null;
+        
+        // 화면 보호기 예약 체크 인터벌 설정
+        function setupScreensaverScheduleCheck() {
+            // 기존 인터벌 제거
+            if (screensaverCheckIntervalId) {
+                clearInterval(screensaverCheckIntervalId);
+            }
+            
+            // 1분마다 예약 체크
+            screensaverCheckIntervalId = setInterval(checkScreensaverSchedules, 60000);
+            
+            // 초기 체크
+            checkScreensaverSchedules();
+        }
+        
+        // 화면 보호기 예약 체크
+        function checkScreensaverSchedules() {
+            fetch('/api/screensaver/status')
+                .then(response => response.json())
+                .then(data => {
+                    // 즉시 화면 보호기 명령 처리
+                    if (data.active && document.getElementById('screensaver').style.display !== 'flex') {
+                        activateScreensaver();
+                    } else if (!data.active && document.getElementById('screensaver').style.display === 'flex') {
+                        deactivateScreensaver();
+                    }
+                    
+                    // 예약 명령 체크
+                    if (data.schedules && data.schedules.length > 0) {
+                        const now = new Date();
+                        const currentDay = now.getDay(); // 0(일) ~ 6(토)
+                        const currentHour = now.getHours();
+                        const currentMinute = now.getMinutes();
+                        const currentTime = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+                        
+                        data.schedules.forEach(schedule => {
+                            // 오늘 요일이 예약에 포함되어 있는지 확인
+                            if (schedule.days.includes(currentDay)) {
+                                // 시간이 일치하는지 확인
+                                if (schedule.time === currentTime) {
+                                    console.log("예약된 화면 보호기 명령 실행:", schedule);
+                                    
+                                    if (schedule.action === 'activate') {
+                                        activateScreensaver();
+                                    } else if (schedule.action === 'deactivate') {
+                                        deactivateScreensaver();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('화면 보호기 상태를 가져오는 데 실패했습니다:', error);
+                });
+        }
+        
+        // 화면 보호기 활성화 수정
+        function activateScreensaver() {
+            const screensaver = document.getElementById('screensaver');
+            updateScreensaverTime();
+            screensaver.style.display = 'flex';
+            
+            // 기존 인터벌 제거
+            if (screensaverIntervalId) {
+                clearInterval(screensaverIntervalId);
+            }
+            
+            // 새 인터벌 설정
+            screensaverIntervalId = setInterval(updateScreensaverTime, 1000);
+            
+            // 음성 안내
+            if (isAudioEnabled) {
+                speak("화면 보호기가 활성화되었습니다. 화면을 터치하면 다시 시작됩니다.");
+            }
+        }
+        
+        // 화면 보호기 비활성화 수정
+        function deactivateScreensaver() {
+            document.getElementById('screensaver').style.display = 'none';
+            
+            // 인터벌 제거
+            if (screensaverIntervalId) {
+                clearInterval(screensaverIntervalId);
+                screensaverIntervalId = null;
+            }
+            
+            resetInactivityTimer();
+        }
+    </script>
+
+    <!-- 관리자 페이지 링크 (화면에 보이지 않음) -->
+    <div style="position: absolute; opacity: 0; pointer-events: none;">
+        <a href="/admin" id="admin-link">관리자 페이지</a>
+    </div>
+</body>
+</html>
