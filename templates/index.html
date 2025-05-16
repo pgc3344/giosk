@@ -1516,71 +1516,70 @@
             }
         }
 
-        // 키오스크 새로고침 함수 수정 - F5와 같은 효과 구현
+        // 키오스크 새로고침 함수 수정 - F5와 같은 효과 더 확실히 구현
         function refreshKiosk() {
+            console.log("새로고침 실행...");
+            
             // 음성 안내
             if (isAudioEnabled) {
                 speak("페이지를 새로고침합니다.");
+                
+                // 음성 안내가 재생될 시간을 주고 새로고침
+                setTimeout(function() {
+                    // 강제 새로고침 (캐시 무시)
+                    window.location.reload(true);
+                }, 800);
+            } else {
+                // 음성 안내가 없으면 즉시 새로고침
+                window.location.reload(true);
             }
-            
-            // 페이지 새로고침
-            location.reload();
         }
         
-        // 원격 새로고침 확인 기능 추가
+        // 원격 새로고침 확인용 변수 및 함수들
         let refreshCheckIntervalId = null;
         
-        // 원격 새로고침 체크 인터벌 설정
+        // 원격 새로고침 체크 인터벌 설정 함수
         function setupRefreshCheck() {
+            console.log("원격 새로고침 체크 설정...");
+            
             // 기존 인터벌 제거
             if (refreshCheckIntervalId) {
                 clearInterval(refreshCheckIntervalId);
             }
             
-            // 10초마다 새로고침 명령 체크
-            refreshCheckIntervalId = setInterval(checkRefreshCommand, 10000);
+            // 2초마다 새로고침 명령 체크 (더 빠른 반응성을 위해)
+            refreshCheckIntervalId = setInterval(checkRefreshCommand, 2000);
             
             // 초기 체크
             checkRefreshCommand();
         }
         
-        // 원격 새로고침 명령 체크
+        // 원격 새로고침 명령 확인 함수 개선
         function checkRefreshCommand() {
             fetch('/api/refresh/status')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API 응답이 올바르지 않습니다.');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    if (data.needsRefresh) {
-                        console.log("원격 새로고침 명령 수신");
+                    // 디버깅을 위한 출력 (콘솔에서 확인 가능)
+                    if (data.needsRefresh === true) {
+                        console.log("원격 새로고침 명령 감지됨! 새로고침을 시작합니다.");
                         
                         // 새로고침 실행
-                        refreshKiosk();
+                        if (isAudioEnabled) {
+                            speak("서버에서 새로고침 요청을 받았습니다.");
+                            setTimeout(() => window.location.reload(true), 800);
+                        } else {
+                            window.location.reload(true);
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('새로고침 상태를 가져오는 데 실패했습니다:', error);
                 });
-        }
-
-        // 키오스크 새로고침
-        function refreshKiosk() {
-            // 음성 안내
-            if (isAudioEnabled) {
-                speak("키오스크 정보를 새로고침합니다.");
-            }
-            
-            // 데이터 다시 불러오기
-            fetchPosters();
-            fetchWeather();
-            fetchMeal();
-            updateDateTime();
-            
-            // 새로고침 버튼 애니메이션
-            const refreshButton = document.querySelector('.feature-button[data-feature="refresh"] .feature-button-icon i');
-            refreshButton.classList.add('fa-spin');
-            
-            setTimeout(() => {
-                refreshButton.classList.remove('fa-spin');
-            }, 1000);
         }
 
         // 화면 보호기 활성화
@@ -1684,6 +1683,8 @@
 
         // 초기화 및 주기적 업데이트
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("페이지 초기화 중...");
+            
             // 기존 초기화 코드
             fetchPosters();
             fetchWeather();
@@ -1696,7 +1697,7 @@
             // 화면 보호기 예약 체크 설정
             setupScreensaverScheduleCheck();
             
-            // 원격 새로고침 체크 설정 추가
+            // 원격 새로고침 체크 설정 (setupRefreshCheck 함수 호출 추가)
             setupRefreshCheck();
             
             // 주기적 업데이트 설정
@@ -1704,6 +1705,8 @@
             setInterval(fetchWeather, 600000); // 10분마다 날씨 업데이트
             setInterval(fetchMeal, 3600000); // 1시간마다 급식 업데이트
             setInterval(fetchPosters, 1800000); // 30분마다 포스터 업데이트
+            
+            console.log("페이지 초기화 완료");
         });
 
         // 화면 보호기 및 원격 관리 기능
