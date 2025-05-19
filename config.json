@@ -5,11 +5,6 @@
             "id": 2,
             "src": "/static/uploads/xcode-cloud-og.jpg",
             "alt": "a"
-        },
-        {
-            "id": 3,
-            "src": "/static/uploads/10.15.jpg",
-            "alt": "dfghjk"
         }
     ],
     "kiosk_title": "학교 키오스크",
