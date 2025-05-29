@@ -13,5 +13,11 @@
     "commands": {
         "refresh": false,
         "screensaver": null
+    },
+    "school_info": {
+        "api_key": "sadfdsf",
+        "edu_office_code": "fdasf",
+        "school_code": "dfasdf",
+        "school_name": "fasdfa"
     }
 }

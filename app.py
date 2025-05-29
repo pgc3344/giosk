@@ -1,11 +1,13 @@
 # app.py - Flask 애플리케이션 파일
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import os
 import time  # time 모듈 추가
 from werkzeug.utils import secure_filename
 import json
+import requests
+import re
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # 세션 암호화를 위한 비밀 키
@@ -33,7 +35,21 @@ DEFAULT_CONFIG = {
     ],
     'kiosk_title': '학교 키오스크',
     'contact_info': '000-0000',
-    'operation_hours': '09:00-18:00'
+    'operation_hours': '09:00-18:00',
+    'meal_settings': {
+        'neis_api_key': '',          # 나이스 API 키
+        'school_code': '',           # 학교 코드 (10자리)
+        'office_code': '',           # 교육청 코드 (10자리)
+        'school_kind': 'mis',        # 학교급 (els: 초등학교, mis: 중학교, his: 고등학교)
+        'auto_update': True,         # 자동 갱신 여부
+        'update_time': '06:00',      # 갱신 시간
+        'update_interval': 1,        # 갱신 간격 (일)
+        'cache_duration': 24,        # 캐시 유지 시간 (시간)
+        'last_updated': None,        # 마지막 갱신 시간
+        'cached_meals': {},          # 캐시된 급식 데이터
+        'error_count': 0,            # 연속 오류 횟수
+        'last_error': None           # 마지막 오류 메시지
+    }
 }
 
 # 파일 확장자 검증 함수
@@ -72,21 +88,163 @@ def get_weather():
     ]
     return jsonify(random.choice(weather_conditions))
 
-# 급식 메뉴를 제공하는 API (실제로는 데이터베이스나 외부 API에서 가져와야 함)
+# 나이스 API 호출 함수
+def fetch_meal_from_neis(school_code, office_code, api_key, date_str):
+    """
+    나이스 교육정보 개발 포털 API에서 급식 정보를 가져오는 함수
+    """
+    try:
+        base_url = "https://open.neis.go.kr/hub/mealServiceDietInfo"
+        
+        params = {
+            'KEY': api_key,
+            'Type': 'json',
+            'pIndex': 1,
+            'pSize': 100,
+            'ATPT_OFCDC_SC_CODE': office_code,
+            'SD_SCHUL_CODE': school_code,
+            'MLSV_YMD': date_str
+        }
+        
+        response = requests.get(base_url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # API 오류 응답 확인
+        if 'RESULT' in data and data['RESULT']['CODE'] != 'INFO-000':
+            error_msg = data['RESULT']['MESSAGE']
+            raise Exception(f"NEIS API Error: {error_msg}")
+        
+        if 'mealServiceDietInfo' in data and len(data['mealServiceDietInfo']) > 1:
+            meals = data['mealServiceDietInfo'][1]['row']
+            meal_data = []
+            
+            for meal in meals:
+                # 메뉴 정리 (HTML 태그 및 알레르기 정보 제거)
+                menu_text = meal['DDISH_NM']
+                # <br/> 태그를 줄바꿈으로 변경
+                menu_text = menu_text.replace('<br/>', '\n')
+                # 알레르기 정보 제거 (숫자. 형태)
+                menu_text = re.sub(r'\d+\.', '', menu_text)
+                # 불필요한 공백 제거
+                menu_items = [item.strip() for item in menu_text.split('\n') if item.strip()]
+                
+                meal_data.append({
+                    'date': f"{date_str[:4]}년 {date_str[4:6]}월 {date_str[6:8]}일",
+                    'type': meal['MMEAL_SC_NM'],  # 조식, 중식, 석식
+                    'items': menu_items,
+                    'cal_info': meal.get('CAL_INFO', ''),  # 칼로리 정보
+                    'ntr_info': meal.get('NTR_INFO', '')   # 영양 정보
+                })
+            
+            return meal_data
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"나이스 API 호출 오류: {e}")
+        raise e
+
+# 급식 데이터 갱신 함수
+def update_meal_cache():
+    """
+    급식 데이터를 갱신하고 캐시에 저장하는 함수
+    """
+    config = load_config()
+    meal_settings = config.get('meal_settings', DEFAULT_CONFIG['meal_settings'])
+    
+    if not all([meal_settings.get('neis_api_key'), 
+                meal_settings.get('school_code'), 
+                meal_settings.get('office_code')]):
+        return False, "API 설정이 완료되지 않았습니다."
+    
+    try:
+        # 오늘부터 일주일간의 급식 정보 가져오기
+        today = datetime.now()
+        cached_meals = {}
+        success_count = 0
+        
+        for i in range(7):
+            target_date = today + timedelta(days=i)
+            date_str = target_date.strftime('%Y%m%d')
+            
+            try:
+                meal_data = fetch_meal_from_neis(
+                    meal_settings['school_code'],
+                    meal_settings['office_code'],
+                    meal_settings['neis_api_key'],
+                    date_str
+                )
+                
+                if meal_data:
+                    cached_meals[date_str] = meal_data
+                    success_count += 1
+                    
+            except Exception as e:
+                print(f"날짜 {date_str} 급식 데이터 가져오기 실패: {e}")
+                continue
+        
+        # 캐시 업데이트
+        config['meal_settings']['cached_meals'] = cached_meals
+        config['meal_settings']['last_updated'] = datetime.now().isoformat()
+        config['meal_settings']['error_count'] = 0
+        config['meal_settings']['last_error'] = None
+        save_config(config)
+        
+        return True, f"{success_count}/7일 급식 데이터 갱신 완료"
+        
+    except Exception as e:
+        error_msg = str(e)
+        config['meal_settings']['error_count'] = config['meal_settings'].get('error_count', 0) + 1
+        config['meal_settings']['last_error'] = error_msg
+        save_config(config)
+        print(f"급식 데이터 갱신 오류: {error_msg}")
+        return False, error_msg
+
+# 급식 메뉴를 제공하는 API
 @app.route('/api/meal')
 def get_meal():
-    # 급식 메뉴 예시 (실제로는 데이터베이스나 외부 API를 통해 실제 급식 정보를 가져와야 함)
+    config = load_config()
+    meal_settings = config.get('meal_settings', DEFAULT_CONFIG['meal_settings'])
+    
+    # 캐시된 데이터가 있고 유효한지 확인
+    if (meal_settings.get('cached_meals') and 
+        meal_settings.get('last_updated')):
+        
+        try:
+            last_updated = datetime.fromisoformat(meal_settings['last_updated'])
+            cache_duration = meal_settings.get('cache_duration', 24)
+            
+            if datetime.now() - last_updated < timedelta(hours=cache_duration):
+                # 오늘 급식 정보 반환
+                today_str = datetime.now().strftime('%Y%m%d')
+                today_meals = meal_settings['cached_meals'].get(today_str, [])
+                
+                if today_meals:
+                    # 중식 정보 우선, 없으면 첫 번째 식사
+                    lunch_meal = next((meal for meal in today_meals if '중식' in meal.get('type', '')), 
+                                    today_meals[0] if today_meals else None)
+                    if lunch_meal:
+                        return jsonify(lunch_meal)
+        except Exception as e:
+            print(f"캐시된 급식 데이터 처리 오류: {e}")
+    
+    # 캐시된 데이터가 없거나 만료된 경우 기본 데이터 반환
     meals = [
         {
             'date': datetime.now().strftime('%Y년 %m월 %d일'),
+            'type': '중식',
             'items': ['미역국', '제육볶음', '김치', '잡곡밥', '배추된장국', '과일 샐러드']
         },
         {
             'date': datetime.now().strftime('%Y년 %m월 %d일'),
+            'type': '중식',
             'items': ['된장찌개', '불고기', '시금치나물', '깍두기', '쌀밥', '요구르트']
         },
         {
             'date': datetime.now().strftime('%Y년 %m월 %d일'),
+            'type': '중식',
             'items': ['김치찌개', '고등어구이', '콩나물무침', '깻잎무침', '현미밥', '바나나']
         }
     ]
@@ -212,8 +370,135 @@ def update_settings():
     config['contact_info'] = request.form.get('contactInfo', DEFAULT_CONFIG['contact_info'])
     config['operation_hours'] = request.form.get('operationHours', DEFAULT_CONFIG['operation_hours'])
     
+    # 급식 설정 업데이트
+    if 'meal_settings' not in config:
+        config['meal_settings'] = DEFAULT_CONFIG['meal_settings'].copy()
+    
+    config['meal_settings']['neis_api_key'] = request.form.get('neisApiKey', '').strip()
+    config['meal_settings']['school_code'] = request.form.get('schoolCode', '').strip()
+    config['meal_settings']['office_code'] = request.form.get('officeCode', '').strip()
+    config['meal_settings']['school_kind'] = request.form.get('schoolKind', 'mis')
+    config['meal_settings']['auto_update'] = request.form.get('autoUpdate') == 'on'
+    config['meal_settings']['update_time'] = request.form.get('updateTime', '06:00')
+    config['meal_settings']['update_interval'] = int(request.form.get('updateInterval', 1))
+    config['meal_settings']['cache_duration'] = int(request.form.get('cacheDuration', 24))
+    
     save_config(config)
     return jsonify({'success': True})
+
+# 급식 API 테스트
+@app.route('/admin/meal/test', methods=['POST'])
+def test_meal_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': '인증되지 않은 접근입니다.'}), 401
+    
+    data = request.json
+    api_key = data.get('apiKey', '').strip()
+    school_code = data.get('schoolCode', '').strip()
+    office_code = data.get('officeCode', '').strip()
+    
+    if not all([api_key, school_code, office_code]):
+        return jsonify({'error': '모든 필드를 입력해주세요.'}), 400
+    
+    try:
+        # 오늘 날짜로 테스트
+        today_str = datetime.now().strftime('%Y%m%d')
+        meal_data = fetch_meal_from_neis(school_code, office_code, api_key, today_str)
+        
+        if meal_data:
+            return jsonify({'success': True, 'data': meal_data, 'message': 'API 테스트 성공!'})
+        else:
+            return jsonify({'success': True, 'data': [], 'message': '오늘 급식 정보가 없습니다.'})
+            
+    except Exception as e:
+        error_msg = str(e)
+        return jsonify({'error': f'API 테스트 실패: {error_msg}'}), 400
+
+# 급식 데이터 수동 갱신
+@app.route('/admin/meal/refresh', methods=['POST'])
+def refresh_meal_data():
+    if not session.get('logged_in'):
+        return jsonify({'error': '인증되지 않은 접근입니다.'}), 401
+    
+    success, message = update_meal_cache()
+    
+    if success:
+        return jsonify({'success': True, 'message': message})
+    else:
+        return jsonify({'error': f'급식 데이터 갱신 실패: {message}'}), 400
+
+# 급식 데이터 상태 확인
+@app.route('/admin/meal/status', methods=['GET'])
+def get_meal_status():
+    if not session.get('logged_in'):
+        return jsonify({'error': '인증되지 않은 접근입니다.'}), 401
+    
+    config = load_config()
+    meal_settings = config.get('meal_settings', DEFAULT_CONFIG['meal_settings'])
+    
+    status = {
+        'last_updated': meal_settings.get('last_updated'),
+        'cache_count': len(meal_settings.get('cached_meals', {})),
+        'auto_update': meal_settings.get('auto_update', False),
+        'update_time': meal_settings.get('update_time', '06:00'),
+        'update_interval': meal_settings.get('update_interval', 1),
+        'error_count': meal_settings.get('error_count', 0),
+        'last_error': meal_settings.get('last_error'),
+        'api_configured': bool(meal_settings.get('neis_api_key') and 
+                              meal_settings.get('school_code') and 
+                              meal_settings.get('office_code'))
+    }
+    
+    return jsonify(status)
+
+# 급식 갱신 스케줄 체크 API
+@app.route('/api/meal/check-schedule', methods=['GET'])
+def check_meal_schedule():
+    config = load_config()
+    meal_settings = config.get('meal_settings', DEFAULT_CONFIG['meal_settings'])
+    
+    if not meal_settings.get('auto_update', False):
+        return jsonify({'success': True, 'updated': False, 'message': '자동 갱신이 비활성화되어 있습니다.'})
+    
+    now = datetime.now()
+    current_time = now.strftime('%H:%M')
+    update_time = meal_settings.get('update_time', '06:00')
+    update_interval = meal_settings.get('update_interval', 1)
+    
+    # 설정된 시간에 자동 갱신 체크
+    if current_time == update_time:
+        last_updated = meal_settings.get('last_updated')
+        should_update = True
+        
+        if last_updated:
+            try:
+                last_update_time = datetime.fromisoformat(last_updated)
+                time_diff = now - last_update_time
+                should_update = time_diff.days >= update_interval
+            except:
+                should_update = True
+        
+        if should_update:
+            success, message = update_meal_cache()
+            return jsonify({'success': True, 'updated': success, 'message': message})
+    
+    return jsonify({'success': True, 'updated': False, 'message': '갱신 시간이 아닙니다.'})
+
+# 급식 데이터 캐시 정리
+@app.route('/admin/meal/clear-cache', methods=['POST'])
+def clear_meal_cache():
+    if not session.get('logged_in'):
+        return jsonify({'error': '인증되지 않은 접근입니다.'}), 401
+    
+    config = load_config()
+    if 'meal_settings' in config:
+        config['meal_settings']['cached_meals'] = {}
+        config['meal_settings']['last_updated'] = None
+        config['meal_settings']['error_count'] = 0
+        config['meal_settings']['last_error'] = None
+        save_config(config)
+    
+    return jsonify({'success': True, 'message': '급식 캐시가 정리되었습니다.'})
 
 # 화면 보호기 상태 및 예약 저장용 변수
 screensaver_status = {

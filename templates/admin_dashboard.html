@@ -479,6 +479,12 @@
                         <i class="fas fa-cog"></i> 설정
                     </a>
                 </div>
+                <!-- 급식 관리 탭 추가 -->
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-tab="meal">
+                        <i class="fas fa-utensils"></i> 급식 관리
+                    </a>
+                </div>
                 <!-- 화면 보호기 관리 탭 추가 -->
                 <div class="nav-item">
                     <a href="#" class="nav-link" data-tab="screensaver">
@@ -595,6 +601,65 @@
                         </button>
                     </form>
                 </div>
+
+                <!-- 급식 설정 섹션 -->
+                <div class="content-section">
+                    <h2 class="section-title"><i class="fas fa-utensils"></i> 급식 정보 설정</h2>
+                    <form class="settings-form" id="meal-settings-form">
+                        <div class="form-group">
+                            <label for="neisApiKey">나이스 API 키</label>
+                            <input type="text" id="neisApiKey" name="neisApiKey" value="{{ config.meal_settings.neis_api_key if config.meal_settings else '' }}" placeholder="나이스 교육정보 개발 포털에서 발급받은 API 키">
+                            <small style="color: #666; margin-top: 5px; display: block;">
+                                <a href="https://open.neis.go.kr/" target="_blank">나이스 교육정보 개발 포털</a>에서 API 키를 발급받으세요.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="schoolCode">학교 코드 (10자리)</label>
+                            <input type="text" id="schoolCode" name="schoolCode" value="{{ config.meal_settings.school_code if config.meal_settings else '' }}" placeholder="예: 7010000001" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="officeCode">교육청 코드 (10자리)</label>
+                            <input type="text" id="officeCode" name="officeCode" value="{{ config.meal_settings.office_code if config.meal_settings else '' }}" placeholder="예: B10" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="schoolKind">학교급</label>
+                            <select id="schoolKind" name="schoolKind">
+                                <option value="els" {{ 'selected' if config.meal_settings and config.meal_settings.school_kind == 'els' else '' }}>초등학교</option>
+                                <option value="mis" {{ 'selected' if config.meal_settings and config.meal_settings.school_kind == 'mis' else '' }}>중학교</option>
+                                <option value="his" {{ 'selected' if config.meal_settings and config.meal_settings.school_kind == 'his' else '' }}>고등학교</option>
+                            </select>
+                        </div>
+                        
+                        <h3 class="subsection-title">자동 갱신 설정</h3>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="autoUpdate" name="autoUpdate" {{ 'checked' if config.meal_settings and config.meal_settings.auto_update else '' }}>
+                                자동 갱신 활성화
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateTime">갱신 시간</label>
+                            <input type="time" id="updateTime" name="updateTime" value="{{ config.meal_settings.update_time if config.meal_settings else '06:00' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="updateInterval">갱신 간격 (일)</label>
+                            <input type="number" id="updateInterval" name="updateInterval" value="{{ config.meal_settings.update_interval if config.meal_settings else 1 }}" min="1" max="7">
+                        </div>
+                        <div class="form-group">
+                            <label for="cacheDuration">캐시 유지 시간 (시간)</label>
+                            <input type="number" id="cacheDuration" name="cacheDuration" value="{{ config.meal_settings.cache_duration if config.meal_settings else 24 }}" min="1" max="168">
+                        </div>
+                        
+                        <div class="control-group">
+                            <button type="submit" class="button">
+                                <i class="fas fa-save"></i> 급식 설정 저장
+                            </button>
+                            <button type="button" id="test-meal-api" class="button button-info">
+                                <i class="fas fa-vial"></i> API 테스트
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
             
             <!-- 도움말 탭 -->
@@ -616,6 +681,10 @@
                         <h3>비밀번호 변경</h3>
                         <p>관리자 계정의 비밀번호를 변경합니다. 보안을 위해 주기적으로 비밀번호를 변경하는 것이 좋습니다.</p>
                         <p>비밀번호는 최소 6자 이상이어야 합니다.</p>
+                        
+                        <h3>급식 관리</h3>
+                        <p>급식 정보를 관리하고 설정합니다. 나이스 API 키, 학교 코드, 교육청 코드 등을 입력하여 급식 정보를 자동으로 가져올 수 있습니다.</p>
+                        <p>자동 갱신을 활성화하면 설정한 시간에 급식 정보가 자동으로 업데이트됩니다.</p>
                     </div>
                 </div>
             </div>
@@ -981,6 +1050,230 @@
             .catch(error => {
                 console.error('Error:', error);
                 showAlert('서버 오류가 발생했습니다.', 'danger');
+            });
+        });
+
+        // 급식 설정 저장
+        document.getElementById('meal-settings-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('/admin/settings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('급식 설정이 성공적으로 저장되었습니다.', 'success');
+                    // 상태 새로고침
+                    if (document.getElementById('meal-tab').classList.contains('active')) {
+                        fetchMealStatus();
+                    }
+                } else {
+                    showAlert(data.error || '급식 설정 저장에 실패했습니다.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('서버 오류가 발생했습니다.', 'danger');
+            });
+        });
+        
+        // 급식 관리 기능
+        document.addEventListener('DOMContentLoaded', function() {
+            // 급식 상태 가져오기
+            function fetchMealStatus() {
+                fetch('/admin/meal/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateMealStatus(data);
+                    })
+                    .catch(error => {
+                        console.error('급식 상태를 가져오는 데 실패했습니다:', error);
+                        showAlert('급식 상태를 가져오는 데 실패했습니다.', 'danger');
+                    });
+            }
+            
+            // 급식 상태 업데이트
+            function updateMealStatus(status) {
+                // API 설정 상태
+                const apiStatusElement = document.getElementById('api-status');
+                apiStatusElement.textContent = status.api_configured ? '설정 완료' : '설정 필요';
+                apiStatusElement.className = 'status-value ' + (status.api_configured ? 'active' : 'inactive');
+                
+                // 마지막 갱신 시간
+                const lastUpdatedElement = document.getElementById('last-updated');
+                if (status.last_updated) {
+                    const date = new Date(status.last_updated);
+                    lastUpdatedElement.textContent = date.toLocaleString('ko-KR');
+                } else {
+                    lastUpdatedElement.textContent = '갱신된 적 없음';
+                }
+                
+                // 캐시 개수
+                document.getElementById('cache-count').textContent = `${status.cache_count}일`;
+                
+                // 자동 갱신 상태
+                const autoUpdateElement = document.getElementById('auto-update-status');
+                autoUpdateElement.textContent = status.auto_update ? `활성화 (${status.update_time}, ${status.update_interval}일마다)` : '비활성화';
+                
+                // 오류 횟수
+                const errorCountElement = document.getElementById('error-count');
+                errorCountElement.textContent = status.error_count + '회';
+                errorCountElement.style.color = status.error_count > 0 ? '#dc3545' : '#28a745';
+                
+                // 마지막 오류
+                document.getElementById('last-error').textContent = status.last_error || '없음';
+            }
+            
+            // API 테스트 버튼
+            document.getElementById('test-meal-api').addEventListener('click', function() {
+                const apiKey = document.getElementById('neisApiKey').value.trim();
+                const schoolCode = document.getElementById('schoolCode').value.trim();
+                const officeCode = document.getElementById('officeCode').value.trim();
+                
+                if (!apiKey || !schoolCode || !officeCode) {
+                    showAlert('API 키, 학교 코드, 교육청 코드를 모두 입력해주세요.', 'danger');
+                    return;
+                }
+                
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 테스트 중...';
+                
+                fetch('/admin/meal/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        apiKey: apiKey,
+                        schoolCode: schoolCode,
+                        officeCode: officeCode
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(`API 테스트 성공! ${data.data.length}개의 급식 정보를 가져왔습니다.`, 'success');
+                        
+                        // 테스트 결과 표시
+                        if (data.data.length > 0) {
+                            displayMealPreview(data.data);
+                        }
+                    } else {
+                        showAlert(`API 테스트 실패: ${data.error}`, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('API 테스트 중 오류가 발생했습니다:', error);
+                    showAlert('API 테스트 중 오류가 발생했습니다.', 'danger');
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-vial"></i> API 테스트';
+                });
+            });
+            
+            // 수동 갱신 버튼
+            document.getElementById('refresh-meal-data').addEventListener('click', function() {
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 갱신 중...';
+                
+                fetch('/admin/meal/refresh', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(data.message, 'success');
+                        fetchMealStatus();
+                    } else {
+                        showAlert(data.error, 'danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('급식 데이터 갱신 중 오류가 발생했습니다:', error);
+                    showAlert('급식 데이터 갱신 중 오류가 발생했습니다.', 'danger');
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-sync-alt"></i> 수동 갱신';
+                });
+            });
+            
+            // 캐시 정리 버튼
+            document.getElementById('clear-meal-cache').addEventListener('click', function() {
+                if (confirm('정말 급식 캐시를 정리하시겠습니까?')) {
+                    fetch('/admin/meal/clear-cache', {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAlert(data.message, 'success');
+                            fetchMealStatus();
+                        } else {
+                            showAlert(data.error, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('캐시 정리 중 오류가 발생했습니다:', error);
+                        showAlert('캐시 정리 중 오류가 발생했습니다.', 'danger');
+                    });
+                }
+            });
+            
+            // 급식 미리보기 로드
+            document.getElementById('load-meal-preview').addEventListener('click', function() {
+                fetch('/api/meal')
+                    .then(response => response.json())
+                    .then(data => {
+                        displayMealPreview([data]);
+                    })
+                    .catch(error => {
+                        console.error('급식 정보를 가져오는 데 실패했습니다:', error);
+                        showAlert('급식 정보를 가져오는 데 실패했습니다.', 'danger');
+                    });
+            });
+            
+            // 급식 미리보기 표시
+            function displayMealPreview(mealData) {
+                const container = document.getElementById('meal-preview-container');
+                
+                if (!mealData || mealData.length === 0) {
+                    container.innerHTML = '<div class="meal-preview"><p>급식 데이터가 없습니다.</p></div>';
+                    return;
+                }
+                
+                let html = '';
+                mealData.forEach((meal, index) => {
+                    html += `
+                        <div class="meal-preview" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                            <h4>${meal.date} - ${meal.type || '중식'}</h4>
+                            <div style="margin: 10px 0;">
+                                <strong>메뉴:</strong>
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    ${meal.items.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                            ${meal.cal_info ? `<p><strong>칼로리:</strong> ${meal.cal_info}</p>` : ''}
+                            ${meal.ntr_info ? `<p><strong>영양정보:</strong> ${meal.ntr_info}</p>` : ''}
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+            
+            // 탭이 변경될 때 급식 상태 갱신
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (this.getAttribute('data-tab') === 'meal') {
+                        fetchMealStatus();
+                    }
+                });
             });
         });
 
