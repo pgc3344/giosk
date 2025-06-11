@@ -1023,15 +1023,15 @@
         <div class="bottom-panel">
             <div class="bottom-section">
                 <div class="bottom-title">공지사항</div>
-                <div class="bottom-text">최신 정보를 확인하세요</div>
+                <div class="bottom-text" id="notice-1">공지사항을 불러오는 중...</div>
             </div>
             <div class="bottom-section bottom-center">
-                <div class="bottom-title">키오스크 이용 안내</div>
-                <div class="bottom-text">화면을 터치하여 이용하세요</div>
+                <div class="bottom-title" id="notice-2-title">키오스크 이용 안내</div>
+                <div class="bottom-text" id="notice-2">화면을 터치하여 이용하세요</div>
             </div>
             <div class="bottom-section bottom-right">
-                <div class="bottom-title">문의: 000-0000</div>
-                <div class="bottom-text">운영시간: 09:00-18:00</div>
+                <div class="bottom-title" id="contact-title">문의: 000-0000</div>
+                <div class="bottom-text" id="contact-info">운영시간: 09:00-18:00</div>
             </div>
         </div>
     </div>
@@ -1072,6 +1072,9 @@
             date: '',
             items: []
         };
+
+        // 공지사항 데이터를 저장할 변수
+        let noticesData = [];
 
         // 포스터 카루셀 초기화
         function initCarousel() {
@@ -1198,6 +1201,21 @@
                 });
         }
 
+        // 공지사항 정보 가져오기
+        function fetchNotices() {
+            fetch('/api/notices')
+                .then(response => response.json())
+                .then(data => {
+                    noticesData = data;
+                    updateNoticesInfo();
+                })
+                .catch(error => {
+                    console.error('공지사항 데이터를 가져오는 데 실패했습니다:', error);
+                    // 오류 시 기본 메시지 표시
+                    updateNoticesInfo();
+                });
+        }
+
         // 급식 정보 업데이트
         function updateMealInfo() {
             const dateElement = document.getElementById('meal-date');
@@ -1221,6 +1239,32 @@
                 li.className = 'meal-item';
                 li.textContent = '오늘은 급식이 없습니다.';
                 listElement.appendChild(li);
+            }
+        }
+
+        // 공지사항 정보 업데이트
+        function updateNoticesInfo() {
+            // 공지사항이 있는 경우 표시
+            if (noticesData && noticesData.length > 0) {
+                // 첫 번째 공지사항을 왼쪽에 표시
+                if (noticesData[0]) {
+                    document.getElementById('notice-1').textContent = noticesData[0].content.substring(0, 50) + (noticesData[0].content.length > 50 ? '...' : '');
+                }
+                
+                // 두 번째 공지사항을 가운데에 표시
+                if (noticesData[1]) {
+                    document.getElementById('notice-2-title').textContent = noticesData[1].title;
+                    document.getElementById('notice-2').textContent = noticesData[1].content.substring(0, 50) + (noticesData[1].content.length > 50 ? '...' : '');
+                } else if (noticesData[0] && noticesData.length === 1) {
+                    // 공지사항이 하나만 있으면 가운데도 같은 내용으로
+                    document.getElementById('notice-2-title').textContent = noticesData[0].title;
+                    document.getElementById('notice-2').textContent = noticesData[0].content.substring(0, 50) + (noticesData[0].content.length > 50 ? '...' : '');
+                }
+            } else {
+                // 공지사항이 없는 경우 기본 메시지 표시
+                document.getElementById('notice-1').textContent = '등록된 공지사항이 없습니다.';
+                document.getElementById('notice-2-title').textContent = '키오스크 이용 안내';
+                document.getElementById('notice-2').textContent = '화면을 터치하여 이용하세요';
             }
         }
 
@@ -1380,13 +1424,26 @@
             fetchPosters();
             fetchWeather();
             fetchMeal();
+            fetchNotices(); // 공지사항 로드 추가
             updateDateTime();
+            
+            // 추가 기능 버튼 초기화
+            initFeatureButtons();
+            
+            // 화면 보호기 예약 체크 설정
+            setupScreensaverScheduleCheck();
+            
+            // 원격 새로고침 체크 설정
+            setupRefreshCheck();
             
             // 주기적 업데이트 설정
             setInterval(updateDateTime, 60000); // 1분마다 시간 업데이트
             setInterval(fetchWeather, 600000); // 10분마다 날씨 업데이트
             setInterval(fetchMeal, 3600000); // 1시간마다 급식 업데이트
             setInterval(fetchPosters, 1800000); // 30분마다 포스터 업데이트
+            setInterval(fetchNotices, 300000); // 5분마다 공지사항 업데이트
+            
+            console.log("페이지 초기화 완료");
         });
 
         // 기능 버튼 관련 변수
@@ -1563,7 +1620,7 @@
                     }
                     return response.json();
                 })
-                .then(data => {
+                .then data => {
                     // 디버깅을 위한 출력 (콘솔에서 확인 가능)
                     if (data.needsRefresh === true) {
                         console.log("원격 새로고침 명령 감지됨! 새로고침을 시작합니다.");
@@ -1689,6 +1746,7 @@
             fetchPosters();
             fetchWeather();
             fetchMeal();
+            fetchNotices(); // 공지사항 로드 추가
             updateDateTime();
             
             // 추가 기능 버튼 초기화
@@ -1697,7 +1755,7 @@
             // 화면 보호기 예약 체크 설정
             setupScreensaverScheduleCheck();
             
-            // 원격 새로고침 체크 설정 (setupRefreshCheck 함수 호출 추가)
+            // 원격 새로고침 체크 설정
             setupRefreshCheck();
             
             // 주기적 업데이트 설정
@@ -1705,6 +1763,7 @@
             setInterval(fetchWeather, 600000); // 10분마다 날씨 업데이트
             setInterval(fetchMeal, 3600000); // 1시간마다 급식 업데이트
             setInterval(fetchPosters, 1800000); // 30분마다 포스터 업데이트
+            setInterval(fetchNotices, 300000); // 5분마다 공지사항 업데이트
             
             console.log("페이지 초기화 완료");
         });

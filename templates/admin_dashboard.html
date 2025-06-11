@@ -457,6 +457,123 @@
             color: #666;
             font-style: italic;
         }
+
+        /* 공지사항 관리 스타일 */
+        .notices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .notice-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .notice-card.inactive {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notice-type {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .notice-status {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .notice-status.active {
+            background: #4CAF50;
+        }
+
+        .notice-status.inactive {
+            background: #9E9E9E;
+        }
+
+        .notice-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .notice-preview {
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .notice-meta {
+            margin-bottom: 15px;
+            color: #888;
+        }
+
+        .notice-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .notice-actions .btn {
+            padding: 4px 8px;
+            font-size: 0.8em;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -838,10 +955,99 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- 공지사항 관리 탭 -->
+            <div id="notices" class="tab-content">
+                <h2>공지사항 관리</h2>
+                
+                <!-- 새 공지사항 추가 -->
+                <div class="card">
+                    <h3>새 공지사항 추가</h3>
+                    <form id="noticeForm">
+                        <div class="form-group">
+                            <label for="noticeTitle">제목:</label>
+                            <input type="text" id="noticeTitle" name="title" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="noticeContent">내용:</label>
+                            <textarea id="noticeContent" name="content" rows="4" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="noticeType">유형:</label>
+                            <select id="noticeType" name="type">
+                                <option value="info">일반</option>
+                                <option value="warning">주의</option>
+                                <option value="important">중요</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="noticeActive" name="active" checked>
+                                활성화
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">공지사항 추가</button>
+                    </form>
+                </div>
+
+                <!-- 공지사항 목록 -->
+                <div class="card">
+                    <h3>공지사항 목록</h3>
+                    <div id="noticesList">
+                        <div class="loading">공지사항을 불러오는 중...</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="footer">
                 <p>© 2023 키오스크 관리 시스템. 모든 권리 보유.</p>
             </div>
+        </div>
+    </div>
+
+    <!-- 공지사항 수정 모달 -->
+    <div id="editNoticeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>공지사항 수정</h3>
+            <form id="editNoticeForm">
+                <input type="hidden" id="editNoticeId">
+                
+                <div class="form-group">
+                    <label for="editNoticeTitle">제목:</label>
+                    <input type="text" id="editNoticeTitle" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editNoticeContent">내용:</label>
+                    <textarea id="editNoticeContent" name="content" rows="4" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editNoticeType">유형:</label>
+                    <select id="editNoticeType" name="type">
+                        <option value="info">일반</option>
+                        <option value="warning">주의</option>
+                        <option value="important">중요</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="editNoticeActive" name="active">
+                        활성화
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">수정</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1731,6 +1937,239 @@
                 });
             });
         });
+
+        // 공지사항 관련 함수들
+        function loadNotices() {
+            fetch('/admin/notices')
+                .then(response => response.json())
+                .then(notices => {
+                    const noticesList = document.getElementById('noticesList');
+                    
+                    if (notices.length === 0) {
+                        noticesList.innerHTML = '<p>등록된 공지사항이 없습니다.</p>';
+                        return;
+                    }
+
+                    let html = '<div class="notices-grid">';
+                    notices.forEach(notice => {
+                        const typeInfo = {
+                            'info': { icon: 'fas fa-info-circle', color: '#4CAF50', label: '일반' },
+                            'warning': { icon: 'fas fa-exclamation-triangle', color: '#FF9800', label: '주의' },
+                            'important': { icon: 'fas fa-exclamation-circle', color: '#F44336', label: '중요' }
+                        }[notice.type] || { icon: 'fas fa-info-circle', color: '#4CAF50', label: '일반' };
+
+                        const createdDate = new Date(notice.created_at).toLocaleDateString('ko-KR');
+                        const activeStatus = notice.active ? '활성' : '비활성';
+                        const activeClass = notice.active ? 'active' : 'inactive';
+
+                        html += `
+                            <div class="notice-card ${activeClass}">
+                                <div class="notice-header">
+                                    <div class="notice-type" style="color: ${typeInfo.color}">
+                                        <i class="${typeInfo.icon}"></i>
+                                        ${typeInfo.label}
+                                    </div>
+                                    <div class="notice-status ${activeClass}">${activeStatus}</div>
+                                </div>
+                                <h4>${notice.title}</h4>
+                                <p class="notice-preview">${notice.content.substring(0, 100)}${notice.content.length > 100 ? '...' : ''}</p>
+                                <div class="notice-meta">
+                                    <small>등록일: ${createdDate}</small>
+                                </div>
+                                <div class="notice-actions">
+                                    <button onclick="editNotice(${notice.id})" class="btn btn-sm btn-secondary">수정</button>
+                                    <button onclick="toggleNoticeStatus(${notice.id})" class="btn btn-sm ${notice.active ? 'btn-warning' : 'btn-success'}">
+                                        ${notice.active ? '비활성화' : '활성화'}
+                                    </button>
+                                    <button onclick="deleteNotice(${notice.id})" class="btn btn-sm btn-danger">삭제</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    
+                    noticesList.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('공지사항 로드 오류:', error);
+                    document.getElementById('noticesList').innerHTML = '<p class="error">공지사항을 불러올 수 없습니다.</p>';
+                });
+        }
+
+        // 새 공지사항 추가
+        document.getElementById('noticeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const noticeData = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                type: formData.get('type'),
+                active: formData.get('active') === 'on'
+            };
+
+            fetch('/admin/notices', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(noticeData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('공지사항이 추가되었습니다.', 'success');
+                    this.reset();
+                    document.getElementById('noticeActive').checked = true;
+                    loadNotices();
+                } else {
+                    showAlert('공지사항 추가에 실패했습니다: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('오류:', error);
+                showAlert('공지사항 추가 중 오류가 발생했습니다.', 'error');
+            });
+        });
+
+        // 공지사항 수정
+        function editNotice(noticeId) {
+            fetch('/admin/notices')
+                .then(response => response.json())
+                .then(notices => {
+                    const notice = notices.find(n => n.id === noticeId);
+                    if (notice) {
+                        document.getElementById('editNoticeId').value = notice.id;
+                        document.getElementById('editNoticeTitle').value = notice.title;
+                        document.getElementById('editNoticeContent').value = notice.content;
+                        document.getElementById('editNoticeType').value = notice.type;
+                        document.getElementById('editNoticeActive').checked = notice.active;
+                        
+                        document.getElementById('editNoticeModal').style.display = 'block';
+                    }
+                });
+        }
+
+        // 공지사항 수정 폼 제출
+        document.getElementById('editNoticeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const noticeData = {
+                id: parseInt(formData.get('id') || document.getElementById('editNoticeId').value),
+                title: formData.get('title'),
+                content: formData.get('content'),
+                type: formData.get('type'),
+                active: formData.get('active') === 'on'
+            };
+
+            fetch('/admin/notices', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(noticeData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('공지사항이 수정되었습니다.', 'success');
+                    closeEditModal();
+                    loadNotices();
+                } else {
+                    showAlert('공지사항 수정에 실패했습니다: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('오류:', error);
+                showAlert('공지사항 수정 중 오류가 발생했습니다.', 'error');
+            });
+        });
+
+        // 공지사항 상태 토글
+        function toggleNoticeStatus(noticeId) {
+            fetch(`/admin/notices/${noticeId}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`공지사항이 ${data.active ? '활성화' : '비활성화'}되었습니다.`, 'success');
+                    loadNotices();
+                } else {
+                    showAlert('상태 변경에 실패했습니다: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('오류:', error);
+                showAlert('상태 변경 중 오류가 발생했습니다.', 'error');
+            });
+        }
+
+        // 공지사항 삭제
+        function deleteNotice(noticeId) {
+            if (confirm('이 공지사항을 삭제하시겠습니까?')) {
+                fetch('/admin/notices', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: noticeId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('공지사항이 삭제되었습니다.', 'success');
+                        loadNotices();
+                    } else {
+                        showAlert('공지사항 삭제에 실패했습니다: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('오류:', error);
+                    showAlert('공지사항 삭제 중 오류가 발생했습니다.', 'error');
+                });
+            }
+        }
+
+        // 모달 관련 함수들
+        function closeEditModal() {
+            document.getElementById('editNoticeModal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('editNoticeModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+
+        // 모달 X 버튼 이벤트
+        document.querySelector('#editNoticeModal .close').onclick = closeEditModal;
+
+        // 탭 전환 함수 수정
+        function showTab(tabName) {
+            // 모든 탭 비활성화
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            
+            // 클릭한 탭 활성화
+            const activeLink = document.querySelector(`.nav-link[data-tab="${tabName}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+                const tabId = activeLink.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            }
+            
+            // 공지사항 탭일 경우 공지사항 로드
+            if (tabName === 'notices') {
+                loadNotices();
+            }
+        }
     </script>
 </body>
 </html>

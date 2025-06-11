@@ -7,8 +7,8 @@
             "alt": "a"
         }
     ],
-    "kiosk_title": "학교 키오스크",
-    "contact_info": "000-0000",
+    "kiosk_title": "학교",
+    "contact_info": "00000",
     "operation_hours": "09:00-18:00",
     "commands": {
         "refresh": false,
@@ -19,5 +19,19 @@
         "edu_office_code": "fdasf",
         "school_code": "dfasdf",
         "school_name": "fasdfa"
+    },
+    "meal_settings": {
+        "neis_api_key": "",
+        "school_code": "",
+        "office_code": "",
+        "school_kind": "mis",
+        "auto_update": false,
+        "update_time": "06:00",
+        "update_interval": 1,
+        "cache_duration": 24,
+        "last_updated": null,
+        "cached_meals": {},
+        "error_count": 0,
+        "last_error": null
     }
 }

@@ -36,6 +36,24 @@ DEFAULT_CONFIG = {
     'kiosk_title': '학교 키오스크',
     'contact_info': '000-0000',
     'operation_hours': '09:00-18:00',
+    'notices': [  # 공지사항 설정 추가
+        {
+            'id': 1,
+            'title': '키오스크 이용 안내',
+            'content': '화면을 터치하여 이용하세요',
+            'type': 'info',  # info, warning, important
+            'active': True,
+            'created_at': datetime.now().isoformat()
+        },
+        {
+            'id': 2,
+            'title': '문의 및 운영시간',
+            'content': '문의: 000-0000\n운영시간: 09:00-18:00',
+            'type': 'info',
+            'active': True,
+            'created_at': datetime.now().isoformat()
+        }
+    ],
     'meal_settings': {
         'neis_api_key': '',          # 나이스 API 키
         'school_code': '',           # 학교 코드 (10자리)
@@ -256,6 +274,13 @@ def get_posters():
     config = load_config()
     return jsonify(config.get('posters', DEFAULT_CONFIG['posters']))
 
+# 공지사항 정보를 제공하는 API
+@app.route('/api/notices')
+def get_notices():
+    config = load_config()
+    active_notices = [notice for notice in config.get('notices', []) if notice.get('active', True)]
+    return jsonify(active_notices)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -283,7 +308,7 @@ def admin_logout():
     return redirect(url_for('admin_login'))
 
 # 관리자 대시보드
-@app.route('/admin/dashboard', methods=['GET'])
+@app.route('/admin/dashboard')
 def admin_dashboard():
     if not session.get('logged_in'):
         flash('로그인이 필요합니다.', 'error')
@@ -351,6 +376,84 @@ def delete_poster(poster_id):
             return jsonify({'success': True})
     
     return jsonify({'error': '포스터를 찾을 수 없습니다.'}), 404
+
+# 공지사항 관리 API
+@app.route('/admin/notices', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def manage_notices():
+    if not session.get('logged_in'):
+        return jsonify({'error': '인증되지 않은 접근입니다.'}), 401
+    
+    config = load_config()
+    
+    if request.method == 'GET':
+        # 모든 공지사항 반환
+        return jsonify(config.get('notices', []))
+    
+    elif request.method == 'POST':
+        # 새 공지사항 추가
+        data = request.json
+        new_notice = {
+            'id': max(notice['id'] for notice in config.get('notices', [])) + 1 if config.get('notices') else 1,
+            'title': data.get('title', ''),
+            'content': data.get('content', ''),
+            'type': data.get('type', 'info'),
+            'active': data.get('active', True),
+            'created_at': datetime.now().isoformat()
+        }
+        
+        if 'notices' not in config:
+            config['notices'] = []
+        config['notices'].append(new_notice)
+        save_config(config)
+        
+        return jsonify({'success': True, 'notice': new_notice})
+    
+    elif request.method == 'PUT':
+        # 공지사항 수정
+        data = request.json
+        notice_id = data.get('id')
+        
+        for notice in config.get('notices', []):
+            if notice['id'] == notice_id:
+                notice['title'] = data.get('title', notice['title'])
+                notice['content'] = data.get('content', notice['content'])
+                notice['type'] = data.get('type', notice['type'])
+                notice['active'] = data.get('active', notice['active'])
+                notice['updated_at'] = datetime.now().isoformat()
+                
+                save_config(config)
+                return jsonify({'success': True, 'notice': notice})
+        
+        return jsonify({'error': '공지사항을 찾을 수 없습니다.'}), 404
+    
+    elif request.method == 'DELETE':
+        # 공지사항 삭제
+        notice_id = request.json.get('id')
+        
+        for i, notice in enumerate(config.get('notices', [])):
+            if notice['id'] == notice_id:
+                del config['notices'][i]
+                save_config(config)
+                return jsonify({'success': True})
+        
+        return jsonify({'error': '공지사항을 찾을 수 없습니다.'}), 404
+
+# 공지사항 상태 토글 API
+@app.route('/admin/notices/<int:notice_id>/toggle', methods=['POST'])
+def toggle_notice_status(notice_id):
+    if not session.get('logged_in'):
+        return jsonify({'error': '인증되지 않은 접근입니다.'}), 401
+    
+    config = load_config()
+    
+    for notice in config.get('notices', []):
+        if notice['id'] == notice_id:
+            notice['active'] = not notice.get('active', True)
+            notice['updated_at'] = datetime.now().isoformat()
+            save_config(config)
+            return jsonify({'success': True, 'active': notice['active']})
+    
+    return jsonify({'error': '공지사항을 찾을 수 없습니다.'}), 404
 
 # 설정 업데이트 API
 @app.route('/admin/settings', methods=['POST'])
